@@ -168,9 +168,9 @@
                             
                             <!-- Header Form Card -->
                             <div class="mb-6">
-                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-extrabold uppercase tracking-wider mb-2.5 border border-blue-200">
+                                <!-- <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-extrabold uppercase tracking-wider mb-2.5 border border-blue-200">
                                     <span>🔐</span> Portal Masuk Pegawai
-                                </div>
+                                </div> -->
                                 <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">
                                     Masuk ke Akun Anda
                                 </h2>
