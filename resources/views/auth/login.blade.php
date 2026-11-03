@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Suratku</title>
+    <title>Suratku (Beta)</title>
 
     <!-- Favicon Logo Tab -->
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=1">
@@ -110,6 +110,9 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-xl font-extrabold tracking-tight text-white">SURATKU</span>
+                            <span class="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-xs">
+                                BETA
+                            </span>
                             <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
                                 POLITEKNIK PEKERJAAN UMUM
                             </span>
@@ -153,8 +156,11 @@
                             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
                                 Selamat Datang
                             </h1>
-                            <p class="text-base sm:text-lg text-slate-300 leading-relaxed font-normal max-w-lg mx-auto">
-                                Portal resmi SURATKU Politeknik Pekerjaan Umum
+                            <p class="text-base sm:text-lg text-slate-300 leading-relaxed font-normal max-w-lg mx-auto flex items-center justify-center gap-2 flex-wrap">
+                                <span>Portal resmi SURATKU Politeknik Pekerjaan Umum</span>
+                                <span class="px-2 py-0.5 text-xs font-extrabold uppercase tracking-wider rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-sm">
+                                    Versi Beta
+                                </span>
                             </p>
                         </div>
 
@@ -324,7 +330,7 @@
                 <div class="flex items-center gap-2 text-slate-400">
                     <span>Sistem Unggul Rekapitulasi dan Tracking Surat</span>
                     <span>•</span>
-                    <span class="font-mono font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-md text-[11px]">Versi GC-001</span>
+                    <span class="font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2.5 py-0.5 rounded-md text-[11px]">Versi Beta GC-001</span>
                 </div>
             </div>
         </footer>

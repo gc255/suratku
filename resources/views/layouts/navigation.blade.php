@@ -11,11 +11,21 @@
                     <div class="hidden sm:block">
                         <div class="flex items-center gap-1.5">
                             <span class="text-base font-extrabold tracking-tight text-white">SURATKU</span>
+                            <span class="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-xs">
+                                BETA
+                            </span>
                             <span class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
                                 POLITEKNIK PEKERJAAN UMUM
                             </span>
                         </div>
                         <p class="text-[10px] text-slate-400 font-medium -mt-0.5">Sistem Unggul Rekapitulasi dan Tracking Surat</p>
+                    </div>
+                    <!-- Tampilan Brand Versi Mobile -->
+                    <div class="sm:hidden flex items-center gap-1.5">
+                        <span class="text-base font-extrabold tracking-tight text-white">SURATKU</span>
+                        <span class="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-xs">
+                            BETA
+                        </span>
                     </div>
                 </a>
 

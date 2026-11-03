@@ -89,7 +89,9 @@ Route::get('/dashboard', function (Request $request) {
     // ==========================================
     // 2. QUERY TABEL DENGAN SISTEM TAB HAK AKSES
     // ==========================================
-    $activeTab = $request->input('tab', 'antrean'); // 'antrean' | 'sudah_paraf' | 'semua'
+    $isSuperAdmin = in_array($user->role, ['super_admin', 'superadmin']);
+    $defaultTab = $isSuperAdmin ? 'semua' : 'antrean';
+    $activeTab = $request->input('tab', $defaultTab); // 'antrean' | 'sudah_paraf' | 'semua'
     $countAntrean = 0;
     $countSudahParaf = 0;
     $countSemua = 0;
@@ -106,7 +108,7 @@ Route::get('/dashboard', function (Request $request) {
 
     if ($user->role === 'penyusun') {
         $query->where('pembuat_id', $user->id);
-    } elseif (in_array($user->role, ['super_admin', 'superadmin'])) {
+    } elseif ($isSuperAdmin) {
         // SUPER ADMIN: Monitoring & Kontrol Penuh Seluruh Surat di Sistem
         $antreanQuery = SuratKeluar::whereNotIn('status', ['DIARSIPKAN']);
         $countAntrean = (clone $antreanQuery)->count();
@@ -119,11 +121,10 @@ Route::get('/dashboard', function (Request $request) {
 
         if ($activeTab === 'sudah_paraf') {
             $query->where('status', 'DIARSIPKAN');
-        } elseif ($activeTab === 'semua') {
-            // Seluruh dokumen tanpa filter status
-        } else {
-            // Default: 'antrean' -> Seluruh surat yang masih berjalan
+        } elseif ($activeTab === 'antrean') {
             $query->whereNotIn('status', ['DIARSIPKAN']);
+        } else {
+            // Default untuk super admin: 'semua' -> Seluruh dokumen tanpa filter status (semua 14 surat)
         }
     } elseif (User::isPemeriksaUnit($user->role)) {
         // PEMERIKSA UNIT / PRODI / LAB
@@ -376,10 +377,11 @@ Route::get('/dashboard', function (Request $request) {
         }
     }
 
-    // Pilihan pagination (default 5 surat, opsi: 5, 10, 20, 50)
-    $perPage = (int) $request->input('per_page', 5);
-    if (!in_array($perPage, [5, 10, 20, 50])) {
-        $perPage = 5;
+    // Pilihan pagination (default 20 surat untuk Super Admin, 10 untuk peran lain, opsi: 5, 10, 20, 50, 100)
+    $defaultPerPage = $isSuperAdmin ? 20 : 10;
+    $perPage = (int) $request->input('per_page', $defaultPerPage);
+    if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+        $perPage = $defaultPerPage;
     }
 
     $surats = $query->latest()->paginate($perPage)->withQueryString();
@@ -459,6 +461,11 @@ Route::middleware('auth')->group(function () {
 
     // Rute Tracking (Semua orang yang login boleh melihat)
     Route::get('/surat/{id}/track', [SuratKeluarController::class, 'track'])->name('surat.track');
+
+    // Rute Pratinjau & Unduh Berkas Dokumen (Aman IDOR & Bebas 404)
+    Route::get('/surat/{id}/draft-file', [SuratKeluarController::class, 'viewDraftFile'])->name('surat.viewDraftFile');
+    Route::get('/surat/{id}/final-file', [SuratKeluarController::class, 'viewFinalFile'])->name('surat.viewFinalFile');
+    Route::get('/surat/{id}/lampiran-revisi', [SuratKeluarController::class, 'viewLampiranRevisi'])->name('surat.viewLampiranRevisi');
 });
 
 require __DIR__.'/auth.php';

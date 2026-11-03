@@ -108,10 +108,13 @@ class SuratKeluarController extends Controller
         ]);
 
         // 4. Simpan catatan ke tabel tracking_surats
+        $isAwalFinal = ($surat->tujuan_penandatangan === ($tujuanUnit ? 'unit' : 'kasubbag'));
+        $targetAksiWord = $isAwalFinal ? 'tanda tangan ' : 'paraf ';
+
         TrackingSurat::create([
             'surat_keluar_id' => $surat->id,
             'aktor_id' => Auth::id(),
-            'aksi' => 'DRAFT DIBUAT dan menunggu paraf ' . $targetAwalLabel,
+            'aksi' => 'DRAFT DIBUAT dan menunggu ' . $targetAksiWord . $targetAwalLabel,
             'catatan' => 'Penyusun mengunggah draft awal ditujukan ke ' . $targetAwalLabel . ' (Penandatangan: ' . $surat->tujuan_penandatangan_label . ').',
         ]);
 
@@ -294,8 +297,10 @@ class SuratKeluarController extends Controller
 
                 $surat->tujuan_kasubbag = $request->tujuan_kasubbag;
                 $kasubbagTujuanLabel = User::getKasubbagRoles()[$request->tujuan_kasubbag] ?? 'Kasubbag Terkait';
+                $isKasubbagFinal = ($targetPenandatangan === 'kasubbag');
+                $targetWord = $isKasubbagFinal ? 'tanda tangan ' : 'paraf ';
                 $statusBaru = SuratKeluar::STATUS_MENUNGGU_KASUBBAG;
-                $namaAksi = 'Diparaf ' . $unitLabel . ' dan menunggu paraf ' . $kasubbagTujuanLabel;
+                $namaAksi = 'Diparaf ' . $unitLabel . ' dan menunggu ' . $targetWord . $kasubbagTujuanLabel;
                 $catatan = 'Dokumen telah diperiksa dan diparaf oleh ' . $unitLabel . '. Diteruskan ke ' . $kasubbagTujuanLabel . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
                 $pesan = 'Surat berhasil diparaf dan diteruskan ke ' . $kasubbagTujuanLabel . '!';
             }
@@ -324,8 +329,10 @@ class SuratKeluarController extends Controller
                 $catatan = $kasubbagLabel . ' telah memeriksa, menyetujui, dan menandatangani dokumen surat.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
                 $pesan = 'Dokumen berhasil ditandatangani! Silakan unggah file final yang telah ditandatangani.';
             } else {
+                $isKabagFinal = ($targetPenandatangan === 'kabag');
+                $targetWord = $isKabagFinal ? 'tanda tangan ' : 'paraf ';
                 $statusBaru = SuratKeluar::STATUS_MENUNGGU_KABAG;
-                $namaAksi = 'Diparaf ' . $kasubbagLabel . ' dan menunggu paraf Kepala Bagian (Kabag)';
+                $namaAksi = 'Diparaf ' . $kasubbagLabel . ' dan menunggu ' . $targetWord . 'Kepala Bagian (Kabag)';
                 $catatan = $komentarPersetujuan 
                     ? $komentarPersetujuan 
                     : 'Dokumen telah diperiksa dan disetujui oleh ' . $kasubbagLabel . '. Diteruskan ke Sekretaris Kepala Administrasi Akademik dan Umum.';
@@ -360,8 +367,10 @@ class SuratKeluarController extends Controller
                 $surat->tujuan_wadir = $request->tujuan_wadir;
                 $wadirRawLabel = User::getSekretarisWadirRoles()[$request->tujuan_wadir] ?? 'Wakil Direktur';
                 $wadirPejabatLabel = str_replace('Sekretaris ', '', $wadirRawLabel);
+                $isWadirFinal = ($targetPenandatangan === 'wadir');
+                $targetWord = $isWadirFinal ? 'tanda tangan ' : 'paraf ';
                 $statusBaru = SuratKeluar::STATUS_MENUNGGU_WADIR;
-                $namaAksi = 'Diparaf Kepala Bagian (Kabag) dan menunggu paraf ' . $wadirPejabatLabel;
+                $namaAksi = 'Diparaf Kepala Bagian (Kabag) dan menunggu ' . $targetWord . $wadirPejabatLabel;
                 $catatan = 'Sekretaris Kabag memproses paraf Kabag dan meneruskan surat ke ' . $wadirPejabatLabel . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
                 $pesan = 'Surat berhasil diparaf dan diteruskan ke ' . $wadirPejabatLabel . '!';
             }
@@ -433,30 +442,22 @@ class SuratKeluarController extends Controller
         return back()->with('success', $pesan);
     }
 
-    // Fungsi bagi Penyusun untuk memperbarui draft saat diminta revisi
+    // Fungsi bagi Penyusun untuk memperbarui draft saat ada kesalahan atau saat diminta revisi
     public function updateDraft(Request $request, $id)
     {
         $surat = SuratKeluar::findOrFail($id);
         $user = Auth::user();
 
-        if ($surat->pembuat_id !== $user->id && !in_array($user->role, ['super_admin', 'superadmin'])) {
-            return back()->with('error', 'Akses Ditolak! Hanya pembuat surat yang dapat memperbarui draft.');
-        }
-
-        // Pastikan status surat mengizinkan pembaruan draft
-        $allowedStatuses = [
-            SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN,
-            SuratKeluar::STATUS_MENUNGGU_UNIT,
-            SuratKeluar::STATUS_MENUNGGU_KASUBBAG,
-            'DIBUAT',
-        ];
-        if (!in_array($surat->status, $allowedStatuses) && !in_array($user->role, ['super_admin', 'superadmin'])) {
-            return back()->with('error', 'Akses Ditolak! Draft hanya dapat diperbarui jika surat berstatus revisi/dikembalikan atau masih pada tahap awal pengajuan.');
+        // Validasi hak akses edit Penyusun sesuai aturan:
+        // Dapat diedit jika belum diparaf oleh pemeriksa level pertama ATAU berstatus revisi
+        if (!$surat->canPenyusunEdit($user->id)) {
+            return back()->with('error', 'Akses Ditolak! Dokumen surat ini sudah diparaf oleh pemeriksa level pertama dan tidak dapat diedit lagi (hanya dapat dibatalkan/dihapus jika ada kekeliruan).');
         }
 
         $request->validate([
             'judul' => 'required|string|max:255',
             'jenis_surat_id' => 'required|exists:jenis_surats,id',
+            'tujuan_kasubbag' => 'nullable|string',
             'file_draft' => 'nullable|mimes:pdf,doc,docx|max:5120',
         ], [
             'judul.required' => 'Judul surat wajib diisi.',
@@ -473,14 +474,21 @@ class SuratKeluarController extends Controller
         $surat->judul = $request->judul;
         $surat->jenis_surat_id = $request->jenis_surat_id;
 
+        if ($request->filled('tujuan_kasubbag') && array_key_exists($request->tujuan_kasubbag, User::getKasubbagRoles())) {
+            $surat->tujuan_kasubbag = $request->tujuan_kasubbag;
+        }
+
         // Tentukan kembali ke pemeriksa awal surat
         $targetPertamaLabel = '';
+        $isTargetFinal = false;
         if ($surat->tujuan_unit) {
             $surat->status = SuratKeluar::STATUS_MENUNGGU_UNIT;
             $targetPertamaLabel = $surat->tujuan_unit_label ?? 'Unit/Prodi/Lab';
+            $isTargetFinal = ($surat->tujuan_penandatangan === 'unit');
         } else {
             $surat->status = SuratKeluar::STATUS_MENUNGGU_KASUBBAG;
             $targetPertamaLabel = $surat->tujuan_kasubbag_label ?? 'Kasubbag';
+            $isTargetFinal = ($surat->tujuan_penandatangan === 'kasubbag');
         }
 
         $surat->catatan_terakhir = null;
@@ -496,14 +504,16 @@ class SuratKeluarController extends Controller
                 $t->save();
             });
 
+        $targetAksiWord = $isTargetFinal ? 'tanda tangan ' : 'paraf ';
+
         TrackingSurat::create([
             'surat_keluar_id' => $surat->id,
             'aktor_id' => $user->id,
-            'aksi' => 'DRAFT DIREVISI dan menunggu paraf ' . $targetPertamaLabel,
-            'catatan' => 'Penyusun telah memperbarui draft dokumen dan mengirimkannya kembali ke ' . $targetPertamaLabel,
+            'aksi' => 'DRAFT DIPERBARUI dan menunggu ' . $targetAksiWord . $targetPertamaLabel,
+            'catatan' => 'Penyusun telah memperbarui data draft dokumen dan meneruskannya ke ' . $targetPertamaLabel . '.',
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Draft surat berhasil diperbarui dan diteruskan kembali ke ' . $targetPertamaLabel . '!');
+        return redirect()->route('dashboard')->with('success', 'Draft surat berhasil diperbarui dan diteruskan ke ' . $targetPertamaLabel . '!');
     }
 
     // Fungsi untuk melihat detail tracking surat
@@ -536,8 +546,8 @@ class SuratKeluarController extends Controller
         $surat = SuratKeluar::findOrFail($id);
         $user = Auth::user();
 
-        // Validasi status alur surat
-        if (!in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD']) && !in_array($user->role, ['super_admin', 'superadmin'])) {
+        // Validasi status alur surat (izinkan jika sudah menunggu final atau sedang di tahap tanda tangan akhir)
+        if (!$this->isSuratAtFinalSigningStage($surat, $user)) {
             return redirect()->route('dashboard')->with('error', 'Akses Ditolak! Dokumen surat belum berada pada tahap tanda tangan akhir / upload berkas final.');
         }
 
@@ -567,13 +577,25 @@ class SuratKeluarController extends Controller
         $surat = SuratKeluar::with('jenisSurat')->findOrFail($id);
         $user = Auth::user();
 
-        // Validasi status alur surat
-        if (!in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD']) && !in_array($user->role, ['super_admin', 'superadmin'])) {
+        // Validasi status alur surat (izinkan jika sudah menunggu final atau sedang di tahap tanda tangan akhir)
+        if (!$this->isSuratAtFinalSigningStage($surat, $user)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses Ditolak! Dokumen surat belum berada pada tahap tanda tangan akhir / upload berkas final.'
+                ], 403);
+            }
             return back()->with('error', 'Akses Ditolak! Dokumen surat belum berada pada tahap tanda tangan akhir / upload berkas final.');
         }
 
         // Validasi otorisasi pengunggah final
         if (!$this->canUserUploadFinal($user, $surat)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses Ditolak! Anda bukan pihak yang berwenang mengunggah berkas final untuk dokumen ini.'
+                ], 403);
+            }
             return back()->with('error', 'Akses Ditolak! Anda bukan pihak yang berwenang mengunggah berkas final untuk dokumen ini.');
         }
         
@@ -587,11 +609,14 @@ class SuratKeluarController extends Controller
             ->exists();
 
         if (!$hasTtdLog) {
+            $catatanTambahan = $request->input('catatan');
             TrackingSurat::create([
                 'surat_keluar_id' => $surat->id,
                 'aktor_id' => $user->id,
                 'aksi' => 'Ditandatangani ' . $penandatanganLabel,
-                'catatan' => $user->role_label . ' memproses dokumen yang telah ditandatangani ' . $penandatanganLabel . '.',
+                'catatan' => $catatanTambahan 
+                    ? ($user->role_label . ' memproses dokumen yang telah ditandatangani ' . $penandatanganLabel . '. Catatan: ' . $catatanTambahan)
+                    : ($user->role_label . ' memproses dokumen yang telah ditandatangani ' . $penandatanganLabel . '.'),
             ]);
         }
 
@@ -732,22 +757,22 @@ class SuratKeluarController extends Controller
             return back()->with('success', 'Surat berhasil dihapus oleh Super Admin.');
         }
 
-        // 2. Proteksi Penyusun: Hanya pembuatnya yang bisa menghapus DAN statusnya masih tahap awal (menunggu unit / kasubbag)
-        if ($user->id === $surat->pembuat_id && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT'])) {
+        // 2. Proteksi Penyusun: Pembuat surat boleh membatalkan/menghapus draft selama belum ditandatangani final / diarsipkan
+        if ($surat->canPenyusunDelete($user->id)) {
             $surat->delete(); // Laravel otomatis akan melakukan Soft Delete
             
             TrackingSurat::create([
                 'surat_keluar_id' => $surat->id,
                 'aktor_id' => $user->id,
-                'aksi' => 'Draft Dibatalkan',
-                'catatan' => 'Penyusun menarik/membatalkan draft surat ini.',
+                'aksi' => 'Draft Dibatalkan / Dihapus',
+                'catatan' => 'Penyusun membatalkan dan menghapus dokumen draft surat ini.',
             ]);
 
-            return back()->with('success', 'Draft surat berhasil dibatalkan dan dipindahkan ke tong sampah.');
+            return back()->with('success', 'Draft surat berhasil dibatalkan dan dihapus.');
         }
 
-        // Jika ada yang mencoba menghapus surat yang sudah diproses atasan
-        return back()->with('error', 'Gagal! Surat sudah diproses oleh atasan dan tidak dapat ditarik kembali.');
+        // Jika ada yang mencoba menghapus surat yang sudah diproses final / diarsipkan
+        return back()->with('error', 'Gagal! Dokumen surat yang telah selesai atau diarsipkan tidak dapat ditarik kembali.');
     }
 
     /**
@@ -799,6 +824,55 @@ class SuratKeluarController extends Controller
     }
 
     /**
+     * Memeriksa apakah dokumen surat sedang berada pada tahap tanda tangan akhir atau upload berkas final
+     */
+    protected function isSuratAtFinalSigningStage(SuratKeluar $surat, User $user): bool
+    {
+        // 1. Jika sudah dalam status menunggu upload berkas final atau selesai ttd
+        if (in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'])) {
+            return true;
+        }
+
+        // 2. Jika Super Admin, selalu diizinkan
+        if (in_array($user->role, ['super_admin', 'superadmin'])) {
+            return true;
+        }
+
+        // 3. Cek apakah surat saat ini sedang menunggu tindakan dari penandatangan final
+        $penandatangan = $surat->tujuan_penandatangan ?? 'direktur';
+
+        if ($penandatangan === 'direktur') {
+            return ($user->role === 'sekretaris_direktur')
+                && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_DIREKTUR, 'PARAF_WADIR']);
+        }
+
+        if ($penandatangan === 'wadir') {
+            return in_array($user->role, ['sekretaris_wadir_1', 'sekretaris_wadir_2', 'sekretaris_wadir_3'])
+                && (!$surat->tujuan_wadir || $surat->tujuan_wadir === $user->role)
+                && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_WADIR, 'PARAF_KABAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_WADIR]);
+        }
+
+        if ($penandatangan === 'kabag') {
+            return ($user->role === 'sekretaris_kabag')
+                && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG]);
+        }
+
+        if ($penandatangan === 'kasubbag') {
+            return in_array($user->role, ['kasubbag_akademik', 'kasubbag_psi', 'kasubbag_keuangan'])
+                && (!$surat->tujuan_kasubbag || $surat->tujuan_kasubbag === $user->role)
+                && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG]);
+        }
+
+        if ($penandatangan === 'unit') {
+            return User::isPemeriksaUnit($user->role)
+                && (!$surat->tujuan_unit || $surat->tujuan_unit === $user->role)
+                && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_UNIT, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT]);
+        }
+
+        return false;
+    }
+
+    /**
      * Memeriksa otorisasi apakah pengguna berhak mengunggah berkas final surat
      */
     protected function canUserUploadFinal(User $user, SuratKeluar $surat): bool
@@ -833,5 +907,118 @@ class SuratKeluarController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Menampilkan atau streaming berkas draft surat secara aman dan bebas 404
+     */
+    public function viewDraftFile($id)
+    {
+        $surat = SuratKeluar::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$this->canUserViewSurat($user, $surat)) {
+            abort(403, 'Akses Ditolak! Anda tidak memiliki izin untuk melihat berkas dokumen draft surat ini.');
+        }
+
+        if (!$surat->file_draft) {
+            abort(404, 'Berkas draft surat belum diunggah.');
+        }
+
+        $path = storage_path('app/public/' . $surat->file_draft);
+        if (!file_exists($path)) {
+            $path = storage_path('app/' . $surat->file_draft);
+        }
+        if (!file_exists($path)) {
+            $path = public_path('storage/' . $surat->file_draft);
+        }
+
+        if (!file_exists($path)) {
+            abort(404, 'Berkas fisik draft surat tidak ditemukan pada penyimpanan server.');
+        }
+
+        $mime = mime_content_type($path) ?: 'application/octet-stream';
+        $filename = basename($path);
+
+        return response()->file($path, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
+    }
+
+    /**
+     * Menampilkan atau streaming berkas surat final yang telah ditandatangani
+     */
+    public function viewFinalFile($id)
+    {
+        $surat = SuratKeluar::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$this->canUserViewSurat($user, $surat)) {
+            abort(403, 'Akses Ditolak! Anda tidak memiliki izin untuk melihat berkas surat final ini.');
+        }
+
+        if (!$surat->file_final) {
+            abort(404, 'Berkas surat final belum tersedia.');
+        }
+
+        $path = storage_path('app/public/' . $surat->file_final);
+        if (!file_exists($path)) {
+            $path = storage_path('app/' . $surat->file_final);
+        }
+        if (!file_exists($path)) {
+            $path = public_path('storage/' . $surat->file_final);
+        }
+
+        if (!file_exists($path)) {
+            abort(404, 'Berkas fisik surat final tidak ditemukan pada penyimpanan server.');
+        }
+
+        $mime = mime_content_type($path) ?: 'application/pdf';
+        $filename = basename($path);
+
+        return response()->file($path, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
+    }
+
+    /**
+     * Mengunduh atau menampilkan berkas lampiran revisi terakhir
+     */
+    public function viewLampiranRevisi($id)
+    {
+        $surat = SuratKeluar::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$this->canUserViewSurat($user, $surat)) {
+            abort(403, 'Akses Ditolak! Anda tidak memiliki izin untuk melihat lampiran revisi ini.');
+        }
+
+        if (!$surat->lampiran_revisi_terakhir) {
+            abort(404, 'Berkas lampiran revisi tidak ditemukan.');
+        }
+
+        $path = storage_path('app/public/' . $surat->lampiran_revisi_terakhir);
+        if (!file_exists($path)) {
+            $path = storage_path('app/' . $surat->lampiran_revisi_terakhir);
+        }
+        if (!file_exists($path)) {
+            $path = public_path('storage/' . $surat->lampiran_revisi_terakhir);
+        }
+
+        if (!file_exists($path)) {
+            abort(404, 'Berkas fisik lampiran revisi tidak ditemukan pada penyimpanan server.');
+        }
+
+        $mime = mime_content_type($path) ?: 'application/octet-stream';
+        $filename = basename($path);
+
+        return response()->file($path, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     }
 }

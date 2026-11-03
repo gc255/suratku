@@ -213,6 +213,7 @@
                 trackingLampiranTerakhir: '',
                 trackingTrackUrl: '',
                 trackingDraft: '',
+                trackingDraftType: 'pdf',
                 trackingFinal: '',
                 trackingList: [],
                 openTrackingFromElement(el) {
@@ -233,6 +234,7 @@
                     }
                     this.trackingTrackUrl = el.dataset.trackUrl || '';
                     this.trackingDraft = el.dataset.draft || '';
+                    this.trackingDraftType = el.dataset.draftType || 'pdf';
                     this.trackingFinal = el.dataset.final || '';
                     this.showTrackingModal = true;
                 },
@@ -251,6 +253,7 @@
                     this.trackingLampiranTerakhir = '';
                     this.trackingTrackUrl = '';
                     this.trackingDraft = '';
+                    this.trackingDraftType = 'pdf';
                     this.trackingFinal = '';
                 },
                 // Modal Informasi Surat
@@ -271,6 +274,7 @@
                 infoStatusBadge: '',
                 infoStatusRaw: '',
                 infoDraftUrl: '',
+                infoDraftType: 'pdf',
                 infoFinalUrl: '',
                 infoTrackUrl: '',
                 infoTrackingsJson: '[]',
@@ -291,6 +295,7 @@
                     this.infoStatusBadge = el.dataset.statusBadge || '';
                     this.infoStatusRaw = el.dataset.statusRaw || '';
                     this.infoDraftUrl = el.dataset.draft || '';
+                    this.infoDraftType = el.dataset.draftType || 'pdf';
                     this.infoFinalUrl = el.dataset.final || '';
                     this.infoTrackUrl = el.dataset.trackUrl || '';
                     this.infoTrackingsJson = el.dataset.trackings || '[]';
@@ -314,6 +319,7 @@
                     this.infoStatusBadge = '';
                     this.infoStatusRaw = '';
                     this.infoDraftUrl = '';
+                    this.infoDraftType = 'pdf';
                     this.infoFinalUrl = '';
                     this.infoTrackUrl = '';
                     this.infoTrackingsJson = '[]';
@@ -330,6 +336,7 @@
                     const statusBadge = this.infoStatusBadge;
                     const trackUrl = this.infoTrackUrl;
                     const draft = this.infoDraftUrl;
+                    const draftType = this.infoDraftType || 'pdf';
                     const final = this.infoFinalUrl;
 
                     this.closeInfoModal();
@@ -349,6 +356,7 @@
                     }
                     this.trackingTrackUrl = trackUrl;
                     this.trackingDraft = draft;
+                    this.trackingDraftType = draftType;
                     this.trackingFinal = final;
                     this.showTrackingModal = true;
                 },
@@ -377,6 +385,7 @@
                 tinjauRole: '',
                 tinjauKembaliTarget: '',
                 tinjauDraftUrl: '',
+                tinjauDraftType: 'pdf',
                 tinjauCatatanRevisi: '',
                 tinjauLampiranRevisi: '',
                 tinjauOpsiKembali: [],
@@ -387,13 +396,14 @@
                 tinjauKomentar: '',
                 tinjauIsFinalSigner: false,
                 tinjauPenandatanganLabel: '',
-                openTinjauModal(id, judul, actionUrl, role, kembaliTarget, draftUrl, catatanRevisi = '', lampiranRevisi = '', opsiKembali = [], defaultWadir = '', isFinalSigner = false, penandatanganLabel = '', defaultKasubbag = '') {
+                openTinjauModal(id, judul, actionUrl, role, kembaliTarget, draftUrl, catatanRevisi = '', lampiranRevisi = '', opsiKembali = [], defaultWadir = '', isFinalSigner = false, penandatanganLabel = '', defaultKasubbag = '', draftType = 'pdf') {
                     this.tinjauSuratId = id;
                     this.tinjauJudul = judul;
                     this.tinjauActionUrl = actionUrl;
                     this.tinjauRole = role;
                     this.tinjauKembaliTarget = kembaliTarget;
                     this.tinjauDraftUrl = draftUrl;
+                    this.tinjauDraftType = draftType || 'pdf';
                     this.tinjauCatatanRevisi = catatanRevisi;
                     this.tinjauLampiranRevisi = lampiranRevisi;
                     this.tinjauOpsiKembali = opsiKembali;
@@ -426,7 +436,8 @@
                         el.dataset.tujuanWadir || '',
                         el.dataset.isFinalSigner === '1',
                         el.dataset.penandatanganLabel || '',
-                        el.dataset.tujuanKasubbag || ''
+                        el.dataset.tujuanKasubbag || '',
+                        el.dataset.draftType || 'pdf'
                     );
                 },
                 closeTinjauModal() {
@@ -437,6 +448,7 @@
                     this.tinjauRole = '';
                     this.tinjauKembaliTarget = '';
                     this.tinjauDraftUrl = '';
+                    this.tinjauDraftType = 'pdf';
                     this.tinjauCatatanRevisi = '';
                     this.tinjauLampiranRevisi = '';
                     this.tinjauOpsiKembali = [];
@@ -453,8 +465,9 @@
                         const id = this.tinjauSuratId;
                         const judul = this.tinjauJudul;
                         const penandatanganLabel = this.tinjauPenandatanganLabel;
+                        const catatan = this.tinjauKomentar || '';
                         this.closeTinjauModal();
-                        this.openUploadFinalModal(id, judul, penandatanganLabel);
+                        this.openUploadFinalModal(id, judul, penandatanganLabel, '', catatan);
                     } else {
                         event.target.closest('form').submit();
                     }
@@ -465,14 +478,16 @@
                 uploadFinalJudul: '',
                 uploadFinalNomorSurat: '',
                 uploadFinalPenandatanganLabel: 'Direktur',
+                uploadFinalCatatan: '',
                 uploadFinalActionUrl: '',
                 isUploadingFinal: false,
                 hasSubmittedAjax: false,
-                openUploadFinalModal(id, judul, penandatanganLabel = 'Direktur', nomorSurat = '') {
+                openUploadFinalModal(id, judul, penandatanganLabel = 'Direktur', nomorSurat = '', catatan = '') {
                     this.uploadFinalId = id;
                     this.uploadFinalJudul = judul;
                     this.uploadFinalPenandatanganLabel = penandatanganLabel || 'Direktur';
                     this.uploadFinalNomorSurat = nomorSurat || '';
+                    this.uploadFinalCatatan = catatan || '';
                     this.uploadFinalActionUrl = '{{ url('/surat') }}/' + id + '/final';
                     this.isUploadingFinal = false;
                     this.showUploadFinalModal = true;
@@ -483,6 +498,7 @@
                     this.uploadFinalJudul = '';
                     this.uploadFinalPenandatanganLabel = 'Direktur';
                     this.uploadFinalNomorSurat = '';
+                    this.uploadFinalCatatan = '';
                     this.uploadFinalActionUrl = '';
                     this.isUploadingFinal = false;
                 },
@@ -579,10 +595,18 @@
                     kep.value = 'teruskan';
                     form.appendChild(kep);
 
+                    if (this.uploadFinalCatatan) {
+                        const com = document.createElement('input');
+                        com.type = 'hidden';
+                        com.name = 'komentar';
+                        com.value = this.uploadFinalCatatan;
+                        form.appendChild(com);
+                    }
+
                     document.body.appendChild(form);
                     form.submit();
                 },
-                // Modal Revisi Draft untuk Penyusun
+                // Modal Edit / Revisi Draft untuk Penyusun
                 showEditDraftModal: false,
                 editDraftId: null,
                 editDraftJudul: '',
@@ -591,14 +615,18 @@
                 editDraftActionUrl: '',
                 editDraftCatatan: '',
                 editDraftLampiran: '',
-                openEditDraftModal(id, judul, jenisId, kasubbag, actionUrl, catatan, lampiran = '') {
+                editDraftHasKasubbag: true,
+                editDraftIsRevisi: false,
+                openEditDraftModal(id, judul, jenisId, kasubbag, actionUrl, catatan, lampiran = '', hasKasubbag = true, isRevisi = false) {
                     this.editDraftId = id;
                     this.editDraftJudul = judul;
                     this.editDraftJenisId = jenisId;
-                    this.editDraftKasubbag = kasubbag;
+                    this.editDraftKasubbag = kasubbag || '';
                     this.editDraftActionUrl = actionUrl;
                     this.editDraftCatatan = catatan;
                     this.editDraftLampiran = lampiran;
+                    this.editDraftHasKasubbag = !!hasKasubbag;
+                    this.editDraftIsRevisi = !!isRevisi;
                     this.showEditDraftModal = true;
                 },
                 closeEditDraftModal() {
@@ -610,6 +638,8 @@
                     this.editDraftActionUrl = '';
                     this.editDraftCatatan = '';
                     this.editDraftLampiran = '';
+                    this.editDraftHasKasubbag = true;
+                    this.editDraftIsRevisi = false;
                 },
                 // Modal Edit Dokumen Arsip & Nomor Surat
                 showEditArsipModal: false,
@@ -650,7 +680,7 @@
         }
     </script>
 
-    <div class="py-8 sm:py-10" x-data="dashboardData()" @keydown.escape.window="closePreview(); closeTracking(); closeInfoModal(); closeTinjauModal(); closeEditDraftModal(); closeUploadFinalModal(); closeArsipModal(true); closeEditArsipModal();">
+    <div class="py-8 sm:py-10" x-data="dashboardData()" @keydown.escape.window="if (showModal) { closePreview(); } else if (showTrackingModal) { closeTracking(); } else if (showInfoModal) { closeInfoModal(); } else if (showTinjauModal) { closeTinjauModal(); } else if (showEditDraftModal) { closeEditDraftModal(); } else if (showUploadFinalModal) { closeUploadFinalModal(); } else if (showArsipModal) { closeArsipModal(true); } else if (showEditArsipModal) { closeEditArsipModal(); }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Deretan Ucapan Selamat Datang & Tombol Aksi (Menyatu dengan Background, Tanpa Box / Batasan) -->
@@ -659,8 +689,11 @@
                     <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
                         Selamat datang kembali, <span class="text-blue-400">{{ Auth::user()->name }}</span> <span class="text-slate-300 font-medium">({{ Auth::user()->role_label }}).</span>
                     </h1>
-                    <p class="text-xs sm:text-sm text-slate-400 mt-1">
-                        Portal Rekapitulasi & Tracking Surat Keluar Politeknik Pekerjaan Umum
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
+                        <span>Portal Rekapitulasi & Tracking Surat Keluar Politeknik Pekerjaan Umum</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                            Versi Beta
+                        </span>
                     </p>
                 </div>
 
@@ -761,10 +794,11 @@
                         @endif
                         <label for="per_page_select" class="font-bold whitespace-nowrap text-slate-400">Tampilkan:</label>
                         <select id="per_page_select" name="per_page" onchange="document.getElementById('perPageForm').submit()" class="text-xs font-extrabold border-none p-0 pr-6 text-white focus:ring-0 bg-transparent cursor-pointer">
-                            <option value="5" {{ ($perPage ?? 5) == 5 ? 'selected' : '' }} class="bg-slate-900 text-white">5 surat</option>
-                            <option value="10" {{ ($perPage ?? 5) == 10 ? 'selected' : '' }} class="bg-slate-900 text-white">10 surat</option>
-                            <option value="20" {{ ($perPage ?? 5) == 20 ? 'selected' : '' }} class="bg-slate-900 text-white">20 surat</option>
-                            <option value="50" {{ ($perPage ?? 5) == 50 ? 'selected' : '' }} class="bg-slate-900 text-white">50 surat</option>
+                            <option value="5" {{ ($perPage ?? 10) == 5 ? 'selected' : '' }} class="bg-slate-900 text-white">5 surat</option>
+                            <option value="10" {{ ($perPage ?? 10) == 10 ? 'selected' : '' }} class="bg-slate-900 text-white">10 surat</option>
+                            <option value="20" {{ ($perPage ?? 10) == 20 ? 'selected' : '' }} class="bg-slate-900 text-white">20 surat</option>
+                            <option value="50" {{ ($perPage ?? 10) == 50 ? 'selected' : '' }} class="bg-slate-900 text-white">50 surat</option>
+                            <option value="100" {{ ($perPage ?? 10) == 100 ? 'selected' : '' }} class="bg-slate-900 text-white">100 surat</option>
                         </select>
                     </form>
                 </div>
@@ -775,14 +809,14 @@
                 <!-- 3. Kolom Cari Surat (Paling Kanan - Lebar 100% Sejajar Kolom 3 Widget Surat Diarsipkan) -->
                 <div class="w-full">
                     <form action="{{ route('dashboard') }}" method="GET" class="flex items-center w-full shadow-lg rounded-xl overflow-hidden border border-white/15">
-                        <input type="hidden" name="per_page" value="{{ $perPage ?? 5 }}">
+                        <input type="hidden" name="per_page" value="{{ $perPage ?? 10 }}">
                         @if(request('tab'))
                             <input type="hidden" name="tab" value="{{ request('tab') }}">
                         @endif
                         <div class="relative w-full">
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari judul surat..." class="text-xs border-none py-2.5 px-3.5 w-full focus:ring-2 focus:ring-blue-500 bg-slate-900/90 text-white placeholder-slate-400">
                             @if(request('search'))
-                                <a href="{{ route('dashboard', array_filter(['per_page' => $perPage ?? 5, 'tab' => request('tab')])) }}" title="Hapus Pencarian" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-white text-xs font-bold">&times;</a>
+                                <a href="{{ route('dashboard', array_filter(['per_page' => $perPage ?? 10, 'tab' => request('tab')])) }}" title="Hapus Pencarian" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-white text-xs font-bold">&times;</a>
                             @endif
                         </div>
                         <button type="submit" class="btn-aksi-blue font-bold py-2.5 px-5 text-xs transition flex items-center whitespace-nowrap">
@@ -792,8 +826,38 @@
                 </div>
             </div>
 
-            <!-- TAB NAVIGASI HAK AKSES (Kasubbag, Sek Kabag, Sek Wadir, Sek Direktur) -->
-            @if(!in_array(Auth::user()->role, ['super_admin', 'superadmin', 'penyusun']))
+            <!-- TAB NAVIGASI HAK AKSES -->
+            @if(in_array(Auth::user()->role, ['super_admin', 'superadmin']))
+                <!-- TAB KHUSUS SUPER ADMIN: Tampilkan Semua Surat (Default), Sedang Diproses, dan Arsip -->
+                <div class="flex items-center space-x-2 border-b border-white/10 mb-5 overflow-x-auto">
+                    <a href="{{ route('dashboard', array_merge(request()->query(), ['tab' => 'semua'])) }}" 
+                       class="inline-flex items-center py-2.5 px-4 text-xs font-bold rounded-t-xl transition-all border-b-2 {{ ($activeTab ?? 'semua') === 'semua' ? 'border-indigo-500 text-indigo-400 bg-indigo-500/15' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5' }}">
+                        <span class="mr-1.5">📂</span> Semua Surat (Sistem)
+                        <span class="ml-2 px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/30 text-indigo-200">
+                            {{ $countSemua ?? 0 }}
+                        </span>
+                    </a>
+                    <a href="{{ route('dashboard', array_merge(request()->query(), ['tab' => 'antrean'])) }}" 
+                       class="inline-flex items-center py-2.5 px-4 text-xs font-bold rounded-t-xl transition-all border-b-2 {{ ($activeTab ?? 'semua') === 'antrean' ? 'border-blue-500 text-blue-400 bg-blue-500/15' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5' }}">
+                        <span class="mr-1.5">⏳</span> Sedang Diproses
+                        @if(($countAntrean ?? 0) > 0)
+                            <span class="ml-2 px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-amber-500 text-white shadow-xs">
+                                {{ $countAntrean }}
+                            </span>
+                        @endif
+                    </a>
+                    <a href="{{ route('dashboard', array_merge(request()->query(), ['tab' => 'sudah_paraf'])) }}" 
+                       class="inline-flex items-center py-2.5 px-4 text-xs font-bold rounded-t-xl transition-all border-b-2 {{ ($activeTab ?? 'semua') === 'sudah_paraf' ? 'border-emerald-500 text-emerald-400 bg-emerald-500/15' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5' }}">
+                        <span class="mr-1.5">🗄️</span> Selesai / Diarsipkan
+                        @if(($countSudahParaf ?? 0) > 0)
+                            <span class="ml-2 px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-emerald-500 text-white shadow-xs">
+                                {{ $countSudahParaf }}
+                            </span>
+                        @endif
+                    </a>
+                </div>
+            @elseif(!in_array(Auth::user()->role, ['penyusun']))
+                <!-- TAB NAVIGASI PEMERIKSA (Kasubbag, Sek Kabag, Sek Wadir, Sek Direktur, Unit) -->
                 <div class="flex items-center space-x-2 border-b border-white/10 mb-5 overflow-x-auto">
                     <a href="{{ route('dashboard', array_merge(request()->query(), ['tab' => 'antrean'])) }}" 
                        class="inline-flex items-center py-2.5 px-4 text-xs font-bold rounded-t-xl transition-all border-b-2 {{ ($activeTab ?? 'antrean') === 'antrean' ? 'border-blue-500 text-blue-400 bg-blue-500/15' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5' }}">
@@ -928,8 +992,9 @@
                                                     data-status="{{ addslashes($surat->status_label) }}"
                                                     data-status-raw="{{ $surat->status }}"
                                                     data-status-badge="{{ $surat->status_badge_class }}"
-                                                    data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
-                                                    data-final="{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}"
+                                                    data-draft="{{ $surat->file_draft ? route('surat.viewDraftFile', $surat->id) : '' }}"
+                                                    data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
+                                                    data-final="{{ $surat->file_final ? route('surat.viewFinalFile', $surat->id) : '' }}"
                                                     data-track-url="{{ route('surat.track', $surat->id) }}"
                                                     data-trackings="{{ json_encode($surat->trackings->values()->map(fn($t, $idx) => [
                                                         'id' => $t->id,
@@ -938,7 +1003,7 @@
                                                         'aktor' => $t->aktor->name ?? 'User',
                                                         'role' => strtoupper($t->aktor->role ?? '-'),
                                                         'catatan' => $t->catatan,
-                                                        'file_lampiran' => $t->file_lampiran ? asset('storage/' . $t->file_lampiran) : null
+                                                        'file_lampiran' => $t->file_lampiran ? route('surat.viewLampiranRevisi', $surat->id) : null
                                                     ])) }}"
                                                     @click="openInfoModalFromElement($el)"
                                                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold bg-cyan-500/10 hover:bg-cyan-500/25 text-cyan-300 hover:text-white border border-cyan-500/25 hover:border-cyan-400/50 transition cursor-pointer shadow-2xs"
@@ -959,7 +1024,7 @@
                                         @endif
                                         @if($surat->lampiran_revisi_terakhir)
                                             <div class="mt-1.5">
-                                                <a href="{{ asset('storage/' . $surat->lampiran_revisi_terakhir) }}" target="_blank" download class="inline-flex items-center gap-1 text-[11px] font-bold text-red-300 hover:text-white bg-red-900/40 hover:bg-red-800/60 border border-red-500/40 px-2 py-0.5 rounded-md shadow-2xs transition">
+                                                <a href="{{ route('surat.viewLampiranRevisi', $surat->id) }}" target="_blank" download class="inline-flex items-center gap-1 text-[11px] font-bold text-red-300 hover:text-white bg-red-900/40 hover:bg-red-800/60 border border-red-500/40 px-2 py-0.5 rounded-md shadow-2xs transition">
                                                     <span>📎</span> Unduh File Koreksi
                                                 </a>
                                             </div>
@@ -1066,8 +1131,11 @@
                                                 }
                                             }
 
-                                            $isPenyusunRevisi = ($uRole === 'penyusun' && $surat->status === \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN);
-                                            $hasActionNeeded = $canReview || $isPenyusunRevisi || $canUploadFinal;
+                                            $canPenyusunEdit = $surat->canPenyusunEdit(Auth::id());
+                                            $canPenyusunDelete = $surat->canPenyusunDelete(Auth::id());
+                                            $isSuperAdmin = in_array($uRole, ['super_admin', 'superadmin']);
+                                            $isPenyusunRevisi = ($surat->status === \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN);
+                                            $hasActionNeeded = $canReview || ($canPenyusunEdit && $isPenyusunRevisi) || $canUploadFinal;
                                         @endphp
 
                                         <div class="inline-flex items-center justify-start transition-all duration-300 ease-in-out"
@@ -1106,7 +1174,7 @@
                                                     <!-- 1. View Surat (Draft) -->
                                                     @if($surat->file_draft)
                                                         <button type="button" 
-                                                                data-url="{{ asset('storage/' . $surat->file_draft) }}"
+                                                                data-url="{{ route('surat.viewDraftFile', $surat->id) }}"
                                                                 data-title="{{ $surat->judul }}"
                                                                 data-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
                                                                 @click="open = false; openPreview($el.dataset.url, $el.dataset.title, $el.dataset.type)"
@@ -1119,7 +1187,7 @@
                                                     <!-- 2. Download / View Final (Jika Sudah Diupload) -->
                                                     @if($surat->file_final)
                                                         <button type="button" 
-                                                                data-url="{{ asset('storage/' . $surat->file_final) }}"
+                                                                data-url="{{ route('surat.viewFinalFile', $surat->id) }}"
                                                                 data-title="{{ $surat->judul }} (Final)"
                                                                 data-type="{{ strtolower(pathinfo($surat->file_final, PATHINFO_EXTENSION)) }}"
                                                                 @click="open = false; openPreview($el.dataset.url, $el.dataset.title, $el.dataset.type)"
@@ -1139,7 +1207,7 @@
                                                                 'aktor' => $t->aktor->name ?? 'User',
                                                                 'role' => strtoupper($t->aktor->role ?? '-'),
                                                                 'catatan' => $t->catatan,
-                                                                'file_lampiran' => $t->file_lampiran ? asset('storage/' . $t->file_lampiran) : null
+                                                                'file_lampiran' => $t->file_lampiran ? route('surat.viewLampiranRevisi', $surat->id) : null
                                                             ])) }}"
                                                             data-judul="{{ $surat->judul }}"
                                                             data-jenis="{{ $surat->jenisSurat->nama ?? '' }}"
@@ -1149,10 +1217,11 @@
                                                             data-status-raw="{{ $surat->status }}"
                                                             data-status-badge="{{ $surat->status_badge_class }}"
                                                             data-catatan-terakhir="{{ $surat->catatan_terakhir ?? '' }}"
-                                                            data-lampiran-terakhir="{{ $surat->lampiran_revisi_terakhir ? asset('storage/' . $surat->lampiran_revisi_terakhir) : '' }}"
+                                                            data-lampiran-terakhir="{{ $surat->lampiran_revisi_terakhir ? route('surat.viewLampiranRevisi', $surat->id) : '' }}"
                                                             data-track-url="{{ route('surat.track', $surat->id) }}"
-                                                            data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
-                                                            data-final="{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}"
+                                                            data-draft="{{ $surat->file_draft ? route('surat.viewDraftFile', $surat->id) : '' }}"
+                                                            data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
+                                                            data-final="{{ $surat->file_final ? route('surat.viewFinalFile', $surat->id) : '' }}"
                                                             @click="open = false; openTrackingFromElement($el)"
                                                             class="flex items-center w-full px-3 py-2 btn-aksi-indigo font-bold text-xs rounded-xl transition text-left cursor-pointer shadow-sm hover:scale-[1.02]"
                                                             title="Lihat Riwayat Perjalanan Surat">
@@ -1176,8 +1245,9 @@
                                                             data-status="{{ addslashes($surat->status_label) }}"
                                                             data-status-raw="{{ $surat->status }}"
                                                             data-status-badge="{{ $surat->status_badge_class }}"
-                                                            data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
-                                                            data-final="{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}"
+                                                            data-draft="{{ $surat->file_draft ? route('surat.viewDraftFile', $surat->id) : '' }}"
+                                                            data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
+                                                            data-final="{{ $surat->file_final ? route('surat.viewFinalFile', $surat->id) : '' }}"
                                                             data-track-url="{{ route('surat.track', $surat->id) }}"
                                                             data-trackings="{{ json_encode($surat->trackings->values()->map(fn($t, $idx) => [
                                                                 'id' => $t->id,
@@ -1186,7 +1256,7 @@
                                                                 'aktor' => $t->aktor->name ?? 'User',
                                                                 'role' => strtoupper($t->aktor->role ?? '-'),
                                                                 'catatan' => $t->catatan,
-                                                                'file_lampiran' => $t->file_lampiran ? asset('storage/' . $t->file_lampiran) : null
+                                                                'file_lampiran' => $t->file_lampiran ? route('surat.viewLampiranRevisi', $surat->id) : null
                                                             ])) }}"
                                                             @click="open = false; openInfoModalFromElement($el)"
                                                             class="flex items-center w-full px-3 py-2 btn-aksi-cyan font-bold text-xs rounded-xl transition text-left cursor-pointer shadow-sm hover:scale-[1.02]"
@@ -1194,7 +1264,7 @@
                                                         <span class="mr-2">ℹ️</span> Informasi Surat
                                                     </button>
 
-                                                    <!-- 4. AKSI TINJAU / PARAF / TTD (Muncul Sesuai Hak Akses & Status Dokumen) -->
+                                                    <!-- 5. AKSI TINJAU / PARAF / TTD (Muncul Sesuai Hak Akses & Status Dokumen) -->
                                                     @if($canReview)
                                                         <button type="button" 
                                                                 data-id="{{ $surat->id }}"
@@ -1204,9 +1274,10 @@
                                                                 data-kembali-target="{{ $reviewKembaliTarget }}"
                                                                 data-is-final-signer="{{ $isFinalSignerThisStep ? '1' : '0' }}"
                                                                 data-penandatangan-label="{{ $surat->tujuan_penandatangan_label }}"
-                                                                data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
+                                                                data-draft="{{ $surat->file_draft ? route('surat.viewDraftFile', $surat->id) : '' }}"
+                                                                data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
                                                                 data-catatan-revisi="{{ $surat->catatan_terakhir ?? '' }}"
-                                                                data-lampiran-revisi="{{ $surat->lampiran_revisi_terakhir ? asset('storage/' . $surat->lampiran_revisi_terakhir) : '' }}"
+                                                                data-lampiran-revisi="{{ $surat->lampiran_revisi_terakhir ? route('surat.viewLampiranRevisi', $surat->id) : '' }}"
                                                                 data-opsi-kembali="{{ json_encode($surat->getOpsiPengembalian($uRole)) }}"
                                                                 data-tujuan-wadir="{{ $surat->tujuan_wadir ?? '' }}"
                                                                 data-tujuan-kasubbag="{{ $surat->tujuan_kasubbag ?? '' }}"
@@ -1217,7 +1288,7 @@
                                                         </button>
                                                     @endif
 
-                                                    <!-- 5. AKSI UPLOAD TTD FINAL (Muncul Untuk Pejabat Penandatangan Terpilih Saat Status Menunggu Upload Final) -->
+                                                    <!-- 6. AKSI UPLOAD TTD FINAL (Muncul Untuk Pejabat Penandatangan Terpilih Saat Status Menunggu Upload Final) -->
                                                     @if($canUploadFinal)
                                                         <button type="button" 
                                                                 @click="open = false; openUploadFinalModal({{ $surat->id }}, '{{ addslashes($surat->judul) }}', '{{ addslashes($surat->tujuan_penandatangan_label) }}', '{{ addslashes($surat->nomor_surat ?? '') }}')"
@@ -1227,17 +1298,27 @@
                                                         </button>
                                                     @endif
 
-                                                    <!-- 6. AKSI REVISI DRAFT (Khusus Penyusun Saat Surat Dikembalikan) -->
-                                                    @if($isPenyusunRevisi)
+                                                    <!-- 7. AKSI EDIT DRAFT / REVISI DRAFT (Khusus Penyusun) -->
+                                                    @if($canPenyusunEdit)
                                                         <button type="button" 
-                                                                @click="open = false; openEditDraftModal({{ $surat->id }}, '{{ addslashes($surat->judul) }}', '{{ $surat->jenis_surat_id }}', '{{ $surat->tujuan_kasubbag }}', '{{ route('surat.updateDraft', $surat->id) }}', '{{ addslashes($surat->catatan_terakhir ?? '') }}', '{{ $surat->lampiran_revisi_terakhir ? asset('storage/' . $surat->lampiran_revisi_terakhir) : '' }}')"
+                                                                @click="open = false; openEditDraftModal(
+                                                                    {{ $surat->id }}, 
+                                                                    '{{ addslashes($surat->judul) }}', 
+                                                                    '{{ $surat->jenis_surat_id }}', 
+                                                                    '{{ $surat->tujuan_kasubbag ?? '' }}', 
+                                                                    '{{ route('surat.updateDraft', $surat->id) }}', 
+                                                                    '{{ addslashes($surat->catatan_terakhir ?? '') }}', 
+                                                                    '{{ $surat->lampiran_revisi_terakhir ? route('surat.viewLampiranRevisi', $surat->id) : '' }}',
+                                                                    {{ $surat->tujuan_unit ? 'false' : 'true' }},
+                                                                    {{ $surat->status === \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN ? 'true' : 'false' }}
+                                                                )"
                                                                 class="flex items-center w-full px-3 py-2 btn-aksi-amber font-bold text-xs rounded-xl transition text-left cursor-pointer shadow-sm hover:scale-[1.02]"
-                                                                title="Perbaiki Draft Surat Sesuai Catatan">
-                                                            <span class="mr-2">✏️</span> Revisi Draft
+                                                                title="{{ $surat->status === \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN ? 'Perbaiki Draft Surat Sesuai Catatan' : 'Edit Judul atau Ganti Berkas Draft' }}">
+                                                            <span class="mr-2">✏️</span> {{ $surat->status === \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN ? 'Revisi Draft' : 'Edit Surat' }}
                                                         </button>
                                                     @endif
 
-                                                    <!-- 7. AKSI EDIT BERKAS & NOMOR SURAT ARSIP -->
+                                                    <!-- 8. AKSI EDIT BERKAS & NOMOR SURAT ARSIP -->
                                                     @if($canEditArsip)
                                                         <button type="button" 
                                                                 @click="open = false; openEditArsipModal(
@@ -1247,7 +1328,7 @@
                                                                     {{ $canChangeFinalFile ? 'true' : 'false' }}, 
                                                                     '{{ addslashes($surat->pengunggahFinal->name ?? 'Pengunggah') }}', 
                                                                     '{{ addslashes($surat->tujuan_penandatangan_label) }}', 
-                                                                    '{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}'
+                                                                    '{{ $surat->file_final ? route('surat.viewFinalFile', $surat->id) : '' }}'
                                                                 )"
                                                                 class="flex items-center w-full px-3 py-2 btn-aksi-amber font-bold text-xs rounded-xl transition text-left cursor-pointer shadow-sm hover:scale-[1.02]"
                                                                 title="{{ $canChangeFinalFile ? 'Edit Berkas Final & Nomor Surat' : 'Berikan / Edit Nomor Surat' }}">
@@ -1256,9 +1337,9 @@
                                                         </button>
                                                     @endif
 
-                                                    <!-- 8. Hapus Surat (Super Admin & Penyusun jika belum diproses lebih lanjut) -->
-                                                    @if(in_array($uRole, ['super_admin', 'superadmin']) || ($uRole === 'penyusun' && in_array($surat->status, [\App\Models\SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN])))
-                                                        <form action="{{ route('surat.destroy', $surat->id) }}" method="POST" class="w-full m-0 p-0" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan/menghapus surat ini?');">
+                                                    <!-- 9. Hapus Surat (Super Admin & Penyusun jika belum final/arsip) -->
+                                                    @if($isSuperAdmin || $canPenyusunDelete)
+                                                        <form action="{{ route('surat.destroy', $surat->id) }}" method="POST" class="w-full m-0 p-0" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus dokumen surat ini?');">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" 
@@ -1298,7 +1379,7 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 sm:px-6 lg:px-8"
+             class="fixed inset-0 z-[100] overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 sm:px-6 lg:px-8"
              style="display: none;">
              
             <div @click.away="closePreview()" 
@@ -1502,7 +1583,7 @@
                     <div class="mb-6 flex flex-wrap gap-2.5" x-show="trackingDraft || trackingFinal">
                         <template x-if="trackingDraft">
                             <button type="button" 
-                                    @click="openPreview(trackingDraft, trackingJudul, 'pdf')"
+                                    @click="openPreview(trackingDraft, trackingJudul, trackingDraftType)"
                                     class="inline-flex items-center btn-aksi-blue text-white text-xs font-bold py-1.5 px-3.5 rounded-xl shadow-md transition hover:scale-[1.02] cursor-pointer">
                                 👁️ Lihat File Draft (Awal)
                             </button>
@@ -1707,7 +1788,7 @@
                         <template x-if="tinjauDraftUrl">
                             <div class="mt-2.5 pt-2.5 border-t border-white/10">
                                 <button type="button" 
-                                        @click="openPreview(tinjauDraftUrl, tinjauJudul, 'pdf')"
+                                        @click="openPreview(tinjauDraftUrl, tinjauJudul, tinjauDraftType)"
                                         class="inline-flex items-center text-xs font-bold text-blue-400 hover:text-blue-300 hover:underline transition cursor-pointer">
                                     <span class="mr-1.5">👁️</span> Pratinjau File Draft Dokumen
                                 </button>
@@ -1952,8 +2033,8 @@
                             ✏️
                         </div>
                         <div>
-                            <h3 class="text-base font-extrabold text-white">Perbaiki & Ajukan Ulang Draft Surat</h3>
-                            <p class="text-xs text-slate-400">Perbarui judul, jenis, tujuan, atau unggah file draft yang sudah direvisi.</p>
+                            <h3 class="text-base font-extrabold text-white" x-text="editDraftIsRevisi ? 'Perbaiki & Ajukan Ulang Draft Surat' : 'Edit / Perbaiki Dokumen Draft Surat'">Perbaiki & Ajukan Ulang Draft Surat</h3>
+                            <p class="text-xs text-slate-400" x-text="editDraftIsRevisi ? 'Perbarui judul, jenis, tujuan, atau unggah file draft yang sudah direvisi.' : 'Perbaiki judul, jenis surat, atau berkas draft sebelum diperiksa oleh atasan.'">Perbarui judul, jenis, tujuan, atau unggah file draft yang sudah direvisi.</p>
                         </div>
                     </div>
                     <button type="button" @click="closeEditDraftModal()" class="text-slate-400 hover:text-white hover:bg-white/10 p-1.5 rounded-xl transition cursor-pointer" title="Tutup">
@@ -2004,12 +2085,12 @@
                         </select>
                     </div>
 
-                    <!-- Input Kasubbag yang Dituju -->
-                    <div class="mb-4">
+                    <!-- Input Kasubbag yang Dituju (Jika bukan dari Unit) -->
+                    <div class="mb-4" x-show="editDraftHasKasubbag">
                         <label for="edit_tujuan_kasubbag" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                             Kepala Subbagian (Kasubbag) yang Dituju <span class="text-rose-400">*</span>
                         </label>
-                        <select id="edit_tujuan_kasubbag" name="tujuan_kasubbag" x-model="editDraftKasubbag" required class="w-full text-xs border border-white/15 rounded-xl shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-900 text-white p-2.5">
+                        <select id="edit_tujuan_kasubbag" name="tujuan_kasubbag" x-model="editDraftKasubbag" :required="editDraftHasKasubbag" class="w-full text-xs border border-white/15 rounded-xl shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-900 text-white p-2.5">
                             @foreach($allKasubbagRoles ?? [] as $kKey => $kLabel)
                                 <option value="{{ $kKey }}" class="bg-slate-900 text-white">{{ $kLabel }}</option>
                             @endforeach
@@ -2019,7 +2100,7 @@
                     <!-- Input File Draft Baru (Opsional) -->
                     <div class="mb-5">
                         <label for="edit_file_draft" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                            Unggah File Draft Hasil Revisi (PDF / Word)
+                            <span x-text="editDraftIsRevisi ? 'Unggah File Draft Hasil Revisi (PDF / Word)' : 'Ganti File Draft (Opsional, PDF / Word)'">Unggah File Draft Hasil Revisi (PDF / Word)</span>
                         </label>
                         <input type="file" id="edit_file_draft" name="file_draft" accept=".pdf,.doc,.docx" class="w-full text-xs text-slate-300 border border-white/15 rounded-xl p-2 bg-slate-900/90 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-500/20 file:text-blue-300 hover:file:bg-blue-500/30 transition cursor-pointer">
                         <p class="text-[11px] text-slate-400 mt-1">
@@ -2034,7 +2115,7 @@
                         </button>
                         <button type="submit" class="px-5 py-2.5 btn-aksi-blue font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-1.5 cursor-pointer">
                             <span>🚀</span>
-                            <span>Simpan & Ajukan Ulang Draft</span>
+                            <span x-text="editDraftIsRevisi ? 'Simpan & Ajukan Ulang Draft' : 'Simpan Perubahan Draft'">Simpan & Ajukan Ulang Draft</span>
                         </button>
                     </div>
                 </form>
@@ -2083,6 +2164,7 @@
                 <!-- Form Upload Final -->
                 <form :action="uploadFinalActionUrl" method="POST" enctype="multipart/form-data" @submit.prevent="submitUploadFinal($event)" class="p-6 overflow-y-auto flex-1 bg-slate-900/40">
                     @csrf
+                    <input type="hidden" name="catatan" :value="uploadFinalCatatan">
                     
                     <!-- Info Surat -->
                     <div class="mb-4 p-4 bg-slate-950/60 rounded-xl border border-white/10 shadow-inner">
@@ -2635,7 +2717,7 @@
                         <!-- Tombol Pratinjau Draft -->
                         <template x-if="infoDraftUrl">
                             <button type="button" 
-                                    @click="openPreview(infoDraftUrl, infoJudul, 'pdf')"
+                                    @click="openPreview(infoDraftUrl, infoJudul, infoDraftType)"
                                     class="px-3.5 py-2 btn-aksi-blue font-bold rounded-xl text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer">
                                 <span>👁️</span> Pratinjau Draft
                             </button>

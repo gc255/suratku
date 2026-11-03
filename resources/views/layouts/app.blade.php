@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Suratku</title>
+        <title>Suratku (Beta)</title>
 
         <!-- Favicon Logo Tab -->
         <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=1">
@@ -61,7 +61,7 @@
                     <div class="flex items-center gap-2 text-slate-400">
                         <span>Sistem Unggul Rekapitulasi dan Tracking Surat</span>
                         <span>•</span>
-                        <span class="font-mono font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-md text-[11px]">Versi GC-001</span>
+                        <span class="font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2.5 py-0.5 rounded-md text-[11px]">Versi Beta GC-001</span>
                     </div>
                 </div>
             </footer>
