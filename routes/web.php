@@ -90,7 +90,7 @@ Route::get('/dashboard', function (Request $request) {
     // 2. QUERY TABEL DENGAN SISTEM TAB HAK AKSES
     // ==========================================
     $isSuperAdmin = in_array($user->role, ['super_admin', 'superadmin']);
-    $defaultTab = $isSuperAdmin ? 'semua' : 'antrean';
+    $defaultTab = ($user->role === 'penyusun' || $isSuperAdmin) ? 'semua' : 'antrean';
     $activeTab = $request->input('tab', $defaultTab); // 'antrean' | 'sudah_paraf' | 'semua'
     $countAntrean = 0;
     $countSudahParaf = 0;
@@ -108,6 +108,18 @@ Route::get('/dashboard', function (Request $request) {
 
     if ($user->role === 'penyusun') {
         $query->where('pembuat_id', $user->id);
+
+        if (in_array($activeTab, ['sudah_paraf', 'diarsipkan'])) {
+            $query->where('status', 'DIARSIPKAN');
+        } elseif (in_array($activeTab, ['antrean', 'butuh_tindakan', 'proses'])) {
+            $query->whereNotIn('status', ['DIARSIPKAN']);
+        } else {
+            // 'semua' -> Menampilkan seluruh surat milik penyusun tanpa filter
+        }
+
+        $countSemua = $statTotal;
+        $countAntrean = $statProses;
+        $countSudahParaf = $statSelesai;
     } elseif ($isSuperAdmin) {
         // SUPER ADMIN: Monitoring & Kontrol Penuh Seluruh Surat di Sistem
         $antreanQuery = SuratKeluar::whereNotIn('status', ['DIARSIPKAN']);

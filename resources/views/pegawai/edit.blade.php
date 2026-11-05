@@ -2,12 +2,12 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <h2 class="font-extrabold text-xl text-white leading-tight flex items-center gap-2">
+                <h2 class="font-cartoon font-bold text-xl text-[#003366] leading-tight flex items-center gap-2">
                     <span>✏️</span> {{ __('Edit Pegawai & Hak Akses') }}
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">Perbarui data nama, identitas login, peran hak akses, atau nomor kontak pegawai.</p>
+                <p class="text-xs text-slate-600 mt-1 font-medium">Perbarui data nama, identitas login, peran hak akses, atau nomor kontak pegawai.</p>
             </div>
-            <a href="{{ route('pegawai.index') }}" class="glass-pill px-3.5 py-1.5 rounded-xl hover:bg-white/10 text-xs font-bold text-slate-300 hover:text-white transition inline-flex items-center gap-2 self-start sm:self-auto border border-white/15">
+            <a href="{{ route('pegawai.index') }}" class="btn-pop-white px-3.5 py-1.5 rounded-xl text-xs font-cartoon font-bold transition inline-flex items-center gap-2 self-start sm:self-auto cursor-pointer">
                 <span>&larr;</span> Kembali ke Daftar Pegawai
             </a>
         </div>
@@ -15,15 +15,15 @@
 
     <div class="py-10">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="glass-panel rounded-2xl p-6 sm:p-8 border border-white/10 shadow-2xl text-slate-100">
+            <div class="cartoon-card rounded-3xl p-6 sm:p-8 bg-white border-2 border-[#003366] shadow-[4px_4px_0px_#003366] text-slate-800 font-cartoon">
                 
                 <!-- Menampilkan Error jika input tidak valid -->
                 @if ($errors->any())
-                    <div class="p-4 mb-6 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-rose-200 shadow-lg">
-                        <p class="font-bold flex items-center text-rose-400 text-sm">
+                    <div class="p-4 mb-6 cartoon-card rounded-2xl bg-rose-100 border-2 border-rose-500 text-rose-950 shadow-[3px_3px_0px_#E11D48]">
+                        <p class="font-black flex items-center text-rose-900 text-sm">
                             <span class="mr-2">⛔</span> Gagal memperbarui data:
                         </p>
-                        <ul class="list-disc ml-8 mt-1.5 text-xs space-y-1">
+                        <ul class="list-disc ml-8 mt-1.5 text-xs font-semibold space-y-1">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -36,36 +36,36 @@
                     @method('PUT')
                     
                     <div class="mb-5">
-                        <label class="block text-slate-200 text-xs font-bold uppercase tracking-wider mb-2">Nama Lengkap <span class="text-rose-400">*</span></label>
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="shadow-inner border border-white/15 rounded-xl w-full py-2.5 px-3.5 text-white placeholder-slate-500 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-900/80 text-sm" required>
+                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">Nama Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="border-2 border-slate-300 rounded-xl w-full py-2.5 px-3.5 text-slate-900 placeholder-slate-400 leading-tight focus:outline-none focus:border-[#003366] bg-white text-sm shadow-xs font-semibold" required>
                     </div>
 
                     <div class="mb-5">
-                        <label class="block text-slate-200 text-xs font-bold uppercase tracking-wider mb-2">NIP / NIK / NIM <span class="text-rose-400">*</span></label>
-                        <input type="text" name="nip" value="{{ old('nip', $user->nip) }}" class="shadow-inner border border-white/15 rounded-xl w-full py-2.5 px-3.5 text-white placeholder-slate-500 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-900/80 text-sm" required placeholder="Cth: 198501152010011005 / 3302... / 202301001">
-                        <p class="text-[11px] text-slate-400 mt-1.5">Nomor Induk Pegawai, NIK, atau NIM (digunakan sebagai ID login unik).</p>
+                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">NIP / NIK / NIM <span class="text-rose-500">*</span></label>
+                        <input type="text" name="nip" value="{{ old('nip', $user->nip) }}" class="border-2 border-slate-300 rounded-xl w-full py-2.5 px-3.5 text-slate-900 placeholder-slate-400 leading-tight focus:outline-none focus:border-[#003366] bg-white text-sm shadow-xs font-mono font-bold" required placeholder="Cth: 198501152010011005 / 3302... / 202301001">
+                        <p class="text-[11px] text-slate-500 mt-1.5 font-medium">Nomor Induk Pegawai, NIK, atau NIM (digunakan sebagai ID login unik).</p>
                     </div>
 
                     <div class="mb-5">
-                        <label class="block text-slate-200 text-xs font-bold uppercase tracking-wider mb-2">Nomor WhatsApp</label>
-                        <input type="text" name="no_wa" value="{{ old('no_wa', $user->no_wa) }}" class="shadow-inner border border-white/15 rounded-xl w-full py-2.5 px-3.5 text-white placeholder-slate-500 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-900/80 text-sm" placeholder="Cth: 081234567890">
-                        <p class="text-[11px] text-slate-400 mt-1.5">Nomor WhatsApp aktif untuk koordinasi notifikasi surat.</p>
+                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">Nomor WhatsApp</label>
+                        <input type="text" name="no_wa" value="{{ old('no_wa', $user->no_wa) }}" class="border-2 border-slate-300 rounded-xl w-full py-2.5 px-3.5 text-slate-900 placeholder-slate-400 leading-tight focus:outline-none focus:border-[#003366] bg-white text-sm shadow-xs font-semibold" placeholder="Cth: 081234567890">
+                        <p class="text-[11px] text-slate-500 mt-1.5 font-medium">Nomor WhatsApp aktif untuk koordinasi notifikasi surat.</p>
                     </div>
 
                     <div class="mb-5">
-                        <label class="block text-slate-200 text-xs font-bold uppercase tracking-wider mb-2">Password Baru (Opsional)</label>
-                        <input type="password" name="password" class="shadow-inner border border-white/15 rounded-xl w-full py-2.5 px-3.5 text-white placeholder-slate-500 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-900/80 text-sm" minlength="8" placeholder="Biarkan kosong jika tidak ingin mengubah password">
-                        <p class="text-[11px] text-slate-400 mt-1.5">Kosongkan jika tidak ada pergantian password.</p>
+                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">Password Baru (Opsional)</label>
+                        <input type="password" name="password" class="border-2 border-slate-300 rounded-xl w-full py-2.5 px-3.5 text-slate-900 placeholder-slate-400 leading-tight focus:outline-none focus:border-[#003366] bg-white text-sm shadow-xs" minlength="8" placeholder="Biarkan kosong jika tidak ingin mengubah password">
+                        <p class="text-[11px] text-slate-500 mt-1.5 font-medium">Kosongkan jika tidak ada pergantian password.</p>
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-slate-200 text-xs font-bold uppercase tracking-wider mb-2">Pilih Hak Akses (Role) <span class="text-rose-400">*</span></label>
-                        <select name="role" class="shadow-inner border border-white/15 rounded-xl w-full py-2.5 px-3.5 text-white leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-900/80 text-sm" required>
-                            <option value="" class="bg-slate-900 text-slate-400">-- Pilih Hak Akses / Role --</option>
+                        <label class="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">Pilih Hak Akses (Role) <span class="text-rose-500">*</span></label>
+                        <select name="role" class="border-2 border-slate-300 rounded-xl w-full py-2.5 px-3.5 text-slate-900 leading-tight focus:outline-none focus:border-[#003366] bg-white text-sm shadow-xs font-semibold cursor-pointer" required>
+                            <option value="" class="text-slate-400">-- Pilih Hak Akses / Role --</option>
                             @foreach(\App\Models\User::getGroupedRoleLabels() as $groupLabel => $groupRoles)
-                                <optgroup label="{{ $groupLabel }}" class="bg-slate-950 font-bold text-indigo-300">
+                                <optgroup label="{{ $groupLabel }}" class="font-bold text-[#003366]">
                                     @foreach($groupRoles as $roleKey => $roleLabel)
-                                        <option value="{{ $roleKey }}" {{ old('role', $user->role) === $roleKey ? 'selected' : '' }} class="bg-slate-900 text-white font-normal">
+                                        <option value="{{ $roleKey }}" {{ old('role', $user->role) === $roleKey ? 'selected' : '' }} class="text-slate-800 font-medium">
                                             {{ $roleLabel }}
                                         </option>
                                     @endforeach
@@ -74,11 +74,11 @@
                         </select>
                     </div>
 
-                    <div class="flex items-center justify-between pt-5 border-t border-white/10 mt-8">
-                        <a href="{{ route('pegawai.index') }}" class="text-slate-400 hover:text-white font-medium text-xs transition">
+                    <div class="flex items-center justify-between pt-5 border-t-2 border-slate-200 mt-8">
+                        <a href="{{ route('pegawai.index') }}" class="text-slate-600 hover:text-slate-900 font-bold text-xs transition">
                             &larr; Batal & Kembali
                         </a>
-                        <button type="submit" class="btn-aksi-blue inline-flex items-center gap-2 font-bold py-2.5 px-6 rounded-xl shadow-lg transition text-xs">
+                        <button type="submit" class="btn-pop-gold inline-flex items-center gap-2 font-bold py-2.5 px-6 rounded-xl text-xs cursor-pointer">
                             <span>💾</span> Perbarui Data Pegawai
                         </button>
                     </div>

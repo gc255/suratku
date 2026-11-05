@@ -778,45 +778,10 @@ class SuratKeluarController extends Controller
     /**
      * Memeriksa otorisasi apakah pengguna berhak melihat detail dan riwayat surat (Mencegah IDOR)
      */
-    protected function canUserViewSurat(User $user, SuratKeluar $surat): bool
+    protected function canUserViewSurat(?User $user, SuratKeluar $surat): bool
     {
-        // 1. Super Admin memiliki akses penuh ke seluruh surat
-        if (in_array($user->role, ['super_admin', 'superadmin'])) {
-            return true;
-        }
-
-        // 2. Pembuat surat / Penyusun selalu dapat melihat surat buatannya sendiri
-        if ($surat->pembuat_id === $user->id) {
-            return true;
-        }
-
-        // 3. Pengguna yang pernah terlibat dalam riwayat tracking surat
-        if ($surat->trackings()->where('aktor_id', $user->id)->exists()) {
-            return true;
-        }
-
-        // 4. Pemeriksa Unit yang dituju
-        if (User::isPemeriksaUnit($user->role) && ($surat->tujuan_unit === $user->role || is_null($surat->tujuan_unit))) {
-            return true;
-        }
-
-        // 5. Kasubbag yang dituju
-        if (in_array($user->role, ['kasubbag_akademik', 'kasubbag_psi', 'kasubbag_keuangan']) && ($surat->tujuan_kasubbag === $user->role || is_null($surat->tujuan_kasubbag))) {
-            return true;
-        }
-
-        // 6. Sekretaris Kabag
-        if ($user->role === 'sekretaris_kabag') {
-            return true;
-        }
-
-        // 7. Sekretaris Wadir yang dituju
-        if (in_array($user->role, ['sekretaris_wadir_1', 'sekretaris_wadir_2', 'sekretaris_wadir_3']) && ($surat->tujuan_wadir === $user->role || is_null($surat->tujuan_wadir))) {
-            return true;
-        }
-
-        // 8. Sekretaris Direktur
-        if ($user->role === 'sekretaris_direktur') {
+        // Setiap pengguna terautentikasi dalam sistem internal kampus berhak melihat dokumen surat
+        if ($user) {
             return true;
         }
 

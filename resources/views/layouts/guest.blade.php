@@ -19,38 +19,39 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-[#090e1a] text-slate-100 font-sans antialiased relative overflow-x-hidden selection:bg-blue-600 selection:text-white flex flex-col justify-between items-center pt-12 pb-0">
+    <body class="min-h-screen bg-pu-canvas text-slate-800 font-sans antialiased relative overflow-x-hidden selection:bg-[#003366] selection:text-white flex flex-col justify-between items-center pt-8 pb-0">
         
-        <!-- Ambient Glow & Grid -->
-        <div class="fixed inset-0 pointer-events-none z-0">
-            <div class="absolute inset-0 bg-grid-pattern opacity-40"></div>
-            <div class="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-blue-600/25 blur-[120px] animate-glow-1"></div>
-            <div class="absolute top-1/3 -right-24 w-[460px] h-[460px] rounded-full bg-indigo-600/20 blur-[130px] animate-glow-2"></div>
-            <div class="absolute -bottom-32 left-1/3 w-[500px] h-[500px] rounded-full bg-cyan-600/15 blur-[140px]"></div>
-        </div>
-
         <div class="relative z-10 w-full max-w-md my-auto px-4 sm:px-6">
             <!-- Brand Logo -->
-            <div class="flex justify-center mb-6">
-                <a href="/" class="flex items-center space-x-3 group">
-                    <img src="{{ asset('images/logo-pu.webp') }}" alt="Logo Politeknik Pekerjaan Umum" class="w-16 h-16 object-contain drop-shadow-lg group-hover:scale-105 transition-transform duration-200">
+            <div class="flex flex-col items-center justify-center mb-6 text-center">
+                <a href="/" class="group inline-flex flex-col items-center">
+                    <div class="w-20 h-20 rounded-3xl bg-white border-2 border-[#003366] shadow-[4px_4px_0px_#003366] p-3 flex items-center justify-center group-hover:-translate-y-1 transition duration-200">
+                        <img src="{{ asset('images/logo-pu.webp') }}" alt="Logo Politeknik Pekerjaan Umum" class="w-full h-full object-contain">
+                    </div>
+                    <div class="mt-3 flex items-center gap-1.5">
+                        <span class="text-xl font-cartoon font-bold text-[#003366] tracking-wide">SURATKU</span>
+                        <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md bg-[#F5B800] text-[#002244] border-2 border-[#002244] shadow-[1.5px_1.5px_0px_#002244]">
+                            BETA
+                        </span>
+                    </div>
+                    <p class="text-[11px] font-medium text-slate-600 mt-0.5">Politeknik Pekerjaan Umum</p>
                 </a>
             </div>
 
             <!-- Card Container -->
-            <div class="glass-panel rounded-2xl p-6 sm:p-8 border border-white/10 shadow-2xl text-slate-100">
+            <div class="cartoon-card rounded-3xl p-6 sm:p-8 bg-white text-slate-800">
                 {{ $slot }}
             </div>
         </div>
 
         <!-- Footer -->
-        <footer class="w-full border-t border-white/10 py-6 text-center text-xs text-slate-400 bg-slate-900/40 relative z-20 mt-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <p>&copy; {{ date('Y') }} <strong>SURATKU - POLITEKNIK PEKERJAAN UMUM</strong>. Seluruh Hak Cipta Dilindungi.</p>
-                <div class="flex items-center gap-2 text-slate-400">
-                    <span>Sistem Unggul Rekapitulasi dan Tracking Surat</span>
+        <footer class="w-full bg-[#003366] border-t-2 border-[#002244] text-white py-5 relative z-20 mt-12 shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-medium">
+                <p>&copy; {{ date('Y') }} <strong class="text-[#F5B800]">SURATKU • POLITEKNIK PEKERJAAN UMUM</strong>. Seluruh Hak Cipta Dilindungi.</p>
+                <div class="flex items-center gap-2 text-blue-200">
+                    <span>Sistem Rekapitulasi & Tracking Surat</span>
                     <span>•</span>
-                    <span class="font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2.5 py-0.5 rounded-md text-[11px]">Versi Beta GC-001</span>
+                    <span class="font-mono font-bold text-[#002244] bg-[#F5B800] border-2 border-[#002244] px-2.5 py-0.5 rounded-md text-[11px] shadow-[1px_1px_0px_#002244]">Versi Beta GC-001</span>
                 </div>
             </div>
         </footer>

@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Suratku (Beta)</title>
+    <title>Suratku (Beta) - Politeknik Pekerjaan Umum</title>
 
     <!-- Favicon Logo Tab -->
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=1">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=1">
 
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans & Fredoka -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 
     <!-- Styles & Scripts (Tailwind CSS, Alpine.js) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,55 +22,60 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
-        /* Background Grid Pattern */
-        .bg-grid-pattern {
-            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-            background-size: 28px 28px;
+        .font-cartoon {
+            font-family: 'Fredoka', 'Plus Jakarta Sans', cursive, sans-serif;
         }
-
-        /* Ambient Glow Animations */
-        @keyframes pulseGlow {
-            0%, 100% {
-                transform: scale(1) translate(0, 0);
-                opacity: 0.45;
-            }
-            50% {
-                transform: scale(1.1) translate(20px, -15px);
-                opacity: 0.7;
-            }
+        .bg-pu-canvas {
+            background-color: #FAF8F5;
+            background-image: radial-gradient(#003366 0.85px, transparent 0.85px);
+            background-size: 20px 20px;
         }
-
-        .animate-glow-1 {
-            animation: pulseGlow 12s ease-in-out infinite alternate;
+        .cartoon-card {
+            border: 2px solid #003366;
+            box-shadow: 4px 4px 0px 0px #003366;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
-        .animate-glow-2 {
-            animation: pulseGlow 15s ease-in-out infinite alternate-reverse;
+        .speech-bubble {
+            position: relative;
+            border: 2px solid #002244;
+            box-shadow: 4px 4px 0px 0px #002244;
         }
-
-        /* Glassmorphism Card Effect */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -7px;
+            left: 24px;
+            width: 12px;
+            height: 12px;
+            background: inherit;
+            border-right: 2px solid #002244;
+            border-bottom: 2px solid #002244;
+            transform: rotate(45deg);
         }
-
-        .glass-pill {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+        .speech-bubble-center::after {
+            left: 50% !important;
+            margin-left: -6px !important;
         }
-
-        /* Custom Input Glow */
-        .input-glow:focus {
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        .btn-pop-gold {
+            background-color: #F5B800 !important;
+            color: #002244 !important;
+            border: 2px solid #002244 !important;
+            box-shadow: 3.5px 3.5px 0px 0px #002244 !important;
+            font-weight: 800 !important;
+            transition: all 0.1s ease !important;
+        }
+        .btn-pop-gold:hover {
+            transform: translate(-1.5px, -1.5px) !important;
+            box-shadow: 5px 5px 0px 0px #002244 !important;
+            background-color: #FFC700 !important;
+        }
+        .btn-pop-gold:active {
+            transform: translate(2px, 2px) !important;
+            box-shadow: 1px 1px 0px 0px #002244 !important;
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#090e1a] text-slate-100 relative overflow-x-hidden selection:bg-blue-600 selection:text-white"
+<body class="min-h-screen bg-pu-canvas text-slate-800 relative overflow-x-hidden selection:bg-[#003366] selection:text-white"
       x-data="{
           showPass: false,
           submitting: false,
@@ -84,48 +89,39 @@
       }"
       x-init="updateTime(); setInterval(() => updateTime(), 30000)">
 
-    <!-- BACKGROUND AMBIENT GLOW & GRID -->
-    <div class="fixed inset-0 pointer-events-none z-0">
-        <!-- Grid Pattern Overlay -->
-        <div class="absolute inset-0 bg-grid-pattern opacity-40"></div>
-
-        <!-- Glowing Spheres -->
-        <div class="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-blue-600/25 blur-[120px] animate-glow-1"></div>
-        <div class="absolute top-1/3 -right-24 w-[460px] h-[460px] rounded-full bg-indigo-600/20 blur-[130px] animate-glow-2"></div>
-        <div class="absolute -bottom-32 left-1/3 w-[500px] h-[500px] rounded-full bg-cyan-600/15 blur-[140px]"></div>
-    </div>
-
     <!-- WRAPPER KONTEN UTAMA -->
-    <div class="relative z-10 flex flex-col min-h-screen">
+    <div class="relative z-10 flex flex-col min-h-screen justify-between">
 
         <!-- =================================================================== -->
         <!-- HEADER TOP NAVIGATION                                               -->
         <!-- =================================================================== -->
-        <header class="w-full border-b border-white/10 bg-slate-900/40 backdrop-blur-md">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <header class="w-full bg-[#003366] border-b-2 border-[#002244] text-white sticky top-0 z-30 shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 
                 <!-- Brand / Logo -->
                 <div class="flex items-center space-x-3.5">
-                    <img src="{{ asset('images/logo-pu.webp') }}" alt="Logo Politeknik Pekerjaan Umum" class="w-11 h-11 object-contain drop-shadow">
+                    <div class="w-10 h-10 rounded-xl bg-white border-2 border-white shadow-[2px_2px_0px_#F5B800] p-1 flex items-center justify-center shrink-0">
+                        <img src="{{ asset('images/logo-pu.webp') }}" alt="Logo Politeknik Pekerjaan Umum" class="w-full h-full object-contain">
+                    </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-xl font-extrabold tracking-tight text-white">SURATKU</span>
-                            <span class="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-xs">
+                            <span class="text-base sm:text-lg font-cartoon font-bold tracking-wide text-white">SURATKU</span>
+                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md bg-[#F5B800] text-[#002244] border-2 border-[#002244] shadow-[1.5px_1.5px_0px_#002244]">
                                 BETA
                             </span>
-                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                            <span class="hidden sm:inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-blue-900/80 text-blue-200 border border-blue-400/40">
                                 POLITEKNIK PEKERJAAN UMUM
                             </span>
                         </div>
-                        <p class="text-[11px] font-medium text-slate-400">Sistem Unggul Rekapitulasi dan Tracking Surat</p>
+                        <p class="text-[10px] text-blue-200 font-medium -mt-0.5">Sistem Rekapitulasi & Tracking Surat</p>
                     </div>
                 </div>
 
                 <!-- Status Jam & Kedipan Hijau Live -->
                 <div class="flex items-center space-x-3">
-                    <div class="flex items-center space-x-2 text-xs font-semibold text-slate-300 glass-pill px-3.5 py-1.5 rounded-full">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 -ml-3"></span>
+                    <div class="flex items-center space-x-2 text-xs font-bold text-white bg-blue-900/70 border-2 border-blue-400/40 shadow-[2px_2px_0px_#002244] px-3.5 py-1.5 rounded-full">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 -ml-4"></span>
                         <span x-text="currentTime"></span>
                     </div>
                 </div>
@@ -137,57 +133,56 @@
         <!-- =================================================================== -->
         <main class="flex-1 flex items-center justify-center py-10 lg:py-16">
             <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
                     
                     <!-- ======================================================= -->
-                    <!-- SISI KIRI (LOGO & SAMBUTAN RESMI) - 7 Kolom            -->
+                    <!-- SISI KIRI (LOGO & SAMBUTAN RESMI DENGAN BALON KOMIK)   -->
                     <!-- ======================================================= -->
                     <div class="lg:col-span-7 flex flex-col justify-center items-center text-center space-y-6">
                         
-                        <!-- Logo Politeknik Pekerjaan Umum -->
-                        <div class="flex justify-center items-center">
-                            <div class="p-4 rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-2xl inline-flex items-center justify-center">
-                                <img src="{{ asset('images/logo-pu.webp') }}" alt="Logo Politeknik Pekerjaan Umum" class="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-[0_10px_25px_rgba(234,179,8,0.3)]">
-                            </div>
+                        <!-- Logo Politeknik PU Pop Card (Center) -->
+                        <div class="p-4 rounded-3xl bg-white border-2 border-[#003366] shadow-[4px_4px_0px_#003366] inline-flex items-center justify-center">
+                            <img src="{{ asset('images/logo-pu.webp') }}" alt="Logo Politeknik Pekerjaan Umum" class="w-20 h-20 sm:w-24 sm:h-24 object-contain">
                         </div>
 
-                        <!-- Sambutan Besar & Paragraf Baru -->
-                        <div class="space-y-3 flex flex-col items-center text-center">
-                            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-                                Selamat Datang
+                        <!-- Sambutan Besar (Center) -->
+                        <div>
+                            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-cartoon font-bold text-[#003366] tracking-tight leading-tight text-center">
+                                Selamat Datang!
                             </h1>
-                            <p class="text-base sm:text-lg text-slate-300 leading-relaxed font-normal max-w-lg mx-auto flex items-center justify-center gap-2 flex-wrap">
-                                <span>Portal resmi SURATKU Politeknik Pekerjaan Umum</span>
-                                <span class="px-2 py-0.5 text-xs font-extrabold uppercase tracking-wider rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-sm">
-                                    Versi Beta
-                                </span>
+                        </div>
+
+                        <!-- BALON KOMIK MODEL 2 (SPEECH BUBBLE GREETING - CENTER) -->
+                        <div class="speech-bubble speech-bubble-center rounded-3xl p-5 sm:p-6 bg-[#F5B800] text-[#002244] border-2 border-[#002244] shadow-[4px_4px_0px_#002244] max-w-lg mx-auto text-center">
+                            <div class="font-cartoon font-bold text-base sm:text-lg">
+                                "Halo Civitas Akademika!"
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-900 font-medium leading-relaxed mt-1.5">
+                                Hari ini ceritanya mau monitor draf surat, memberi paraf, atau mau menandatangani dokumen? Yuk cuss masuk aja dengan akun kamu untuk memulai!
                             </p>
                         </div>
 
                     </div>
 
                     <!-- ======================================================= -->
-                    <!-- SISI KANAN (FORM LOGIN ELEGAN & PROFESIONAL) - 5 Kolom  -->
+                    <!-- SISI KANAN (FORM LOGIN CARTOON NEO-BRUTALIST) - 5 Kolom -->
                     <!-- ======================================================= -->
                     <div class="lg:col-span-5 w-full max-w-md mx-auto">
-                        <div class="glass-card rounded-3xl p-7 sm:p-9 shadow-2xl text-slate-800 relative overflow-hidden border border-white/60">
+                        <div class="cartoon-card rounded-3xl p-7 sm:p-9 bg-white text-slate-800 relative">
                             
                             <!-- Header Form Card -->
                             <div class="mb-6">
-                                <!-- <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-extrabold uppercase tracking-wider mb-2.5 border border-blue-200">
-                                    <span>🔐</span> Portal Masuk Pegawai
-                                </div> -->
-                                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">
-                                    Masuk ke Akun Anda
+                                <h2 class="text-2xl font-cartoon font-bold text-[#003366] tracking-tight">
+                                    Portal Masuk Pegawai
                                 </h2>
-                                <p class="text-xs text-slate-500 mt-1">
-                                    Gunakan NIP, NIK, NIM, atau Username terdaftar untuk memulai sesi.
+                                <p class="text-xs text-slate-600 font-medium mt-1">
+                                    Gunakan NIP, NIK, NIM, atau Username terdaftar untuk memulai sesi kerja.
                                 </p>
                             </div>
 
-                            <!-- Session Status (Misal: Logout Berhasil / Reset Password) -->
+                            <!-- Session Status -->
                             @if (session('status'))
-                                <div class="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-xs">
+                                <div class="mb-5 p-3.5 rounded-2xl bg-emerald-100 border-2 border-emerald-600 text-emerald-950 text-xs font-bold flex items-center gap-2 shadow-[2px_2px_0px_#059669]">
                                     <span>✅</span>
                                     <span>{{ session('status') }}</span>
                                 </div>
@@ -195,11 +190,11 @@
 
                             <!-- Error Message Umum -->
                             @if (isset($errors) && $errors->any())
-                                <div class="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs shadow-xs">
-                                    <div class="font-bold flex items-center gap-1.5 mb-1">
+                                <div class="mb-5 p-3.5 rounded-2xl bg-rose-100 border-2 border-rose-600 text-rose-950 text-xs shadow-[2px_2px_0px_#E11D48]">
+                                    <div class="font-bold flex items-center gap-1.5 mb-1 text-rose-800">
                                         <span>⚠️</span> Gagal Melakukan Autentikasi:
                                     </div>
-                                    <ul class="list-disc list-inside space-y-0.5 text-red-700">
+                                    <ul class="list-disc list-inside space-y-0.5 text-rose-900 font-medium">
                                         @foreach ($errors->all() as $error)
                                             <li>{{ $error }}</li>
                                         @endforeach
@@ -213,12 +208,12 @@
 
                                 <!-- Input: NIP / NIK / NIM / USERNAME -->
                                 <div>
-                                    <label for="input_nip" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    <label for="input_nip" class="block text-xs font-cartoon font-bold text-slate-800 uppercase tracking-wider mb-1.5">
                                         NIP / NIK / NIM / USERNAME <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-5 h-5 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                             </svg>
                                         </div>
@@ -229,19 +224,19 @@
                                                required 
                                                autofocus
                                                autocomplete="username"
-                                               placeholder="Masukkan NIP, NIK, NIM, atau username"
-                                               class="w-full pl-10 pr-3.5 py-2.5 text-xs font-medium text-slate-900 bg-slate-50/80 border border-slate-300 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-0 input-glow transition duration-200 shadow-2xs">
+                                               placeholder="Masukkan NIP, NIK, atau username"
+                                               class="w-full pl-10 pr-3.5 py-2.5 text-xs font-semibold text-slate-900 bg-slate-50 border-2 border-[#003366] rounded-xl focus:bg-white focus:border-[#003366] focus:ring-2 focus:ring-[#F5B800]/50 transition duration-200">
                                     </div>
                                 </div>
 
                                 <!-- Input: Password -->
                                 <div>
-                                    <label for="input_password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    <label for="input_password" class="block text-xs font-cartoon font-bold text-slate-800 uppercase tracking-wider mb-1.5">
                                         Kata Sandi <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-5 h-5 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                             </svg>
                                         </div>
@@ -251,12 +246,12 @@
                                                required 
                                                autocomplete="current-password"
                                                placeholder="Masukkan kata sandi"
-                                               class="w-full pl-10 pr-10 py-2.5 text-xs font-medium text-slate-900 bg-slate-50/80 border border-slate-300 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-0 input-glow transition duration-200 shadow-2xs">
+                                               class="w-full pl-10 pr-10 py-2.5 text-xs font-semibold text-slate-900 bg-slate-50 border-2 border-[#003366] rounded-xl focus:bg-white focus:border-[#003366] focus:ring-2 focus:ring-[#F5B800]/50 transition duration-200">
                                         
                                         <!-- Tombol Toggle Show/Hide Password -->
                                         <button type="button" 
                                                 @click="showPass = !showPass"
-                                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-[#003366] transition cursor-pointer"
                                                 title="Lihat / Sembunyikan Kata Sandi">
                                             <svg x-show="!showPass" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -275,8 +270,8 @@
                                         <input id="remember_me" 
                                                type="checkbox" 
                                                name="remember" 
-                                               class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-offset-0 transition cursor-pointer">
-                                        <span class="ms-2 text-xs font-semibold text-slate-600">Ingat sesi saya</span>
+                                               class="w-4 h-4 text-[#003366] bg-slate-100 border-2 border-[#003366] rounded focus:ring-0 transition cursor-pointer">
+                                        <span class="ms-2 text-xs font-bold text-slate-700">Ingat sesi saya</span>
                                     </label>
                                 </div>
 
@@ -284,18 +279,18 @@
                                 <div class="pt-2">
                                     <button type="submit" 
                                             :disabled="submitting"
-                                            class="w-full py-3 px-5 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed">
+                                            class="btn-pop-gold w-full py-3 px-5 rounded-2xl font-cartoon font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed">
                                         <template x-if="!submitting">
                                             <span class="flex items-center gap-2">
                                                 <span>Masuk ke Sistem</span>
-                                                <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                                                 </svg>
                                             </span>
                                         </template>
                                         <template x-if="submitting">
                                             <span class="flex items-center gap-2">
-                                                <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                                                <svg class="animate-spin h-4 w-4 text-[#002244]" viewBox="0 0 24 24" fill="none">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                                                 </svg>
@@ -307,7 +302,7 @@
                             </form>
 
                             <!-- Badge Informasi Keamanan Bawah -->
-                            <div class="mt-6 pt-5 border-t border-slate-200 flex items-center justify-center gap-2 text-slate-500 text-[11px] font-medium text-center">
+                            <div class="mt-6 pt-5 border-t-2 border-slate-100 flex items-center justify-center gap-2 text-slate-600 text-[11px] font-semibold text-center">
                                 <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
@@ -324,13 +319,13 @@
         <!-- =================================================================== -->
         <!-- FOOTER                                                              -->
         <!-- =================================================================== -->
-        <footer class="w-full border-t border-white/10 py-6 text-center text-xs text-slate-400 bg-slate-900/30">
-            <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <p>&copy; {{ date('Y') }} <strong>SURATKU - POLITEKNIK PEKERJAAN UMUM</strong>. Seluruh Hak Cipta Dilindungi.</p>
-                <div class="flex items-center gap-2 text-slate-400">
-                    <span>Sistem Unggul Rekapitulasi dan Tracking Surat</span>
+        <footer class="w-full bg-[#003366] border-t-2 border-[#002244] text-white py-5 relative z-20 shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-medium">
+                <p>&copy; {{ date('Y') }} <strong class="text-[#F5B800]">SURATKU • POLITEKNIK PEKERJAAN UMUM</strong>. Seluruh Hak Cipta Dilindungi.</p>
+                <div class="flex items-center gap-2 text-blue-200">
+                    <span>Sistem Rekapitulasi & Tracking Surat</span>
                     <span>•</span>
-                    <span class="font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2.5 py-0.5 rounded-md text-[11px]">Versi Beta GC-001</span>
+                    <span class="font-mono font-bold text-[#002244] bg-[#F5B800] border-2 border-[#002244] px-2.5 py-0.5 rounded-md text-[11px] shadow-[1px_1px_0px_#002244]">Versi Beta GC-001</span>
                 </div>
             </div>
         </footer>

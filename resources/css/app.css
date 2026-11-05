@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fredoka:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,6 +6,147 @@
 
 body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.font-cartoon {
+    font-family: 'Fredoka', 'Plus Jakarta Sans', cursive, sans-serif;
+}
+
+/* ==========================================================================
+   PU CARTOON & NEO-BRUTALIST STYLING
+   ========================================================================== */
+.bg-pu-canvas {
+    background-color: #F4F6F9;
+}
+
+.cartoon-card {
+    border: 2px solid #003366;
+    box-shadow: 4px 4px 0px 0px #003366;
+}
+
+/* Hanya elemen interaktif (tautan atau tombol) yang memiliki efek angkat tombol saat disentuh */
+a.cartoon-card:hover,
+button.cartoon-card:hover,
+.cartoon-card-interactive:hover {
+    transform: translate(-1.5px, -1.5px);
+    box-shadow: 5.5px 5.5px 0px 0px #003366;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Kontainer Tabel Statis: Kokoh & Tanpa Efek Hover Button */
+.cartoon-table-card {
+    border: 2px solid #003366;
+    box-shadow: 4px 4px 0px 0px #003366;
+    background-color: #ffffff;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    transform: none !important;
+}
+
+.cartoon-table-card:hover {
+    transform: none !important;
+    box-shadow: 4px 4px 0px 0px #003366 !important;
+}
+
+.cartoon-card-gold {
+    border: 2px solid #002244;
+    box-shadow: 4px 4px 0px 0px #002244;
+    background-color: #FFFDF7;
+}
+
+/* MODEL 2: BALON KOMIK (SPEECH BUBBLE) - Statis di dalam tabel */
+.speech-bubble {
+    position: relative;
+    border: 2px solid #003366;
+    box-shadow: 3px 3px 0px 0px #003366;
+}
+
+.speech-bubble:hover {
+    transform: none !important;
+    box-shadow: 3px 3px 0px 0px #003366 !important;
+}
+
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6.5px;
+    left: 16px;
+    width: 9px;
+    height: 9px;
+    background: inherit;
+    border-right: 2px solid inherit;
+    border-bottom: 2px solid inherit;
+    border-color: inherit;
+    transform: rotate(45deg);
+}
+
+.speech-bubble-center::after {
+    left: 50% !important;
+    margin-left: -5px !important;
+}
+
+.speech-bubble-rose {
+    border-color: #BE123C !important;
+    box-shadow: 3px 3px 0px 0px #BE123C !important;
+}
+
+.speech-bubble-rose::after {
+    border-color: #BE123C !important;
+}
+
+/* NEO-BRUTALIST POP BUTTONS */
+.btn-pop-gold {
+    background-color: #F5B800 !important;
+    color: #002244 !important;
+    border: 2px solid #002244 !important;
+    box-shadow: 3px 3px 0px 0px #002244 !important;
+    font-weight: 800 !important;
+    transition: all 0.1s ease !important;
+}
+.btn-pop-gold:hover {
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 4.5px 4.5px 0px 0px #002244 !important;
+    background-color: #FFC700 !important;
+}
+.btn-pop-gold:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 1px 1px 0px 0px #002244 !important;
+}
+
+.btn-pop-navy {
+    background-color: #003366 !important;
+    color: #ffffff !important;
+    border: 2px solid #001f3f !important;
+    box-shadow: 3px 3px 0px 0px #001f3f !important;
+    font-weight: 800 !important;
+    transition: all 0.1s ease !important;
+}
+.btn-pop-navy:hover {
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 4.5px 4.5px 0px 0px #001f3f !important;
+    background-color: #004080 !important;
+}
+.btn-pop-navy:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 1px 1px 0px 0px #001f3f !important;
+}
+
+.btn-pop-white {
+    background-color: #ffffff !important;
+    color: #003366 !important;
+    border: 2px solid #003366 !important;
+    box-shadow: 3px 3px 0px 0px #003366 !important;
+    font-weight: 700 !important;
+    transition: all 0.1s ease !important;
+}
+.btn-pop-white:hover {
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 4.5px 4.5px 0px 0px #003366 !important;
+    background-color: #f8fafc !important;
+}
+.btn-pop-white:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 1px 1px 0px 0px #003366 !important;
 }
 
 /* Background Grid Pattern */
@@ -155,133 +296,221 @@ body {
 }
 
 /* ==========================================================================
-   EFEK TOMBOL AKSI MODERN & PREMIUM (GLOWING GRADIENTS & HOVER LIFT)
+   SOFT CARTOON NEO-BRUTALIST PU - TOMBOL AKSI & MODAL STYLES
    ========================================================================== */
 
-/* 1. Tombol Aksi Hijau Emerald (Menunggu Persetujuan / Tindakan / Setujui & Teruskan) */
+/* 1. Tombol Aksi Hijau Emerald (Setujui / Selesai / Teruskan) */
 .btn-aksi-emerald,
 .btn-aksi-menunggu,
-.btn-modal-teruskan,
-.btn-menu-tinjau {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #22c55e !important;
-    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.45) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+.btn-modal-teruskan {
+    background-color: #10B981 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #065F46 !important;
+    box-shadow: 2.5px 2.5px 0px 0px #065F46 !important;
+    font-weight: 800 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer !important;
 }
 .btn-aksi-emerald:hover,
 .btn-aksi-menunggu:hover,
-.btn-modal-teruskan:hover,
-.btn-menu-tinjau:hover {
-    background: linear-gradient(135deg, #15803d 0%, #14532d 100%) !important;
-    transform: translateY(-1.5px) !important;
-    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.7) !important;
+.btn-modal-teruskan:hover {
+    background-color: #059669 !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #065F46 !important;
+}
+.btn-aksi-emerald:active,
+.btn-aksi-menunggu:active,
+.btn-modal-teruskan:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #065F46 !important;
 }
 
-/* 2. Tombol Aksi Default (Abu-abu Gelap Mengikuti Super Admin dengan Efek Glow Halus) */
+/* 2. Tombol Menu Tinjau / Paraf (Kuning Kunyit Khas PU - Pop Gold) */
+.btn-menu-tinjau {
+    background-color: #F5B800 !important;
+    color: #002244 !important;
+    border: 2px solid #002244 !important;
+    box-shadow: 2.5px 2.5px 0px 0px #002244 !important;
+    font-weight: 800 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+}
+.btn-menu-tinjau:hover {
+    background-color: #FFC700 !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #002244 !important;
+}
+.btn-menu-tinjau:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #002244 !important;
+}
+
+/* 3. Tombol Aksi Default (Abu-abu / Dark Navy) */
 .btn-aksi-default,
 .btn-aksi-dark {
-    background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #4b5563 !important;
-    box-shadow: 0 2px 6px rgba(31, 41, 55, 0.35) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background-color: #334155 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #0F172A !important;
+    box-shadow: 2.5px 2.5px 0px 0px #0F172A !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer !important;
 }
 .btn-aksi-default:hover,
 .btn-aksi-dark:hover {
-    background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%) !important;
-    transform: translateY(-1.5px) !important;
-    box-shadow: 0 4px 12px rgba(31, 41, 55, 0.55) !important;
+    background-color: #1E293B !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #0F172A !important;
+}
+.btn-aksi-default:active,
+.btn-aksi-dark:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #0F172A !important;
 }
 
-/* 3. Tombol Aksi Biru (View Surat, Tambah Data, Download, Upload) */
+/* 4. Tombol Aksi Biru PU (View Surat, Tambah Data, Download) */
 .btn-aksi-blue {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #3b82f6 !important;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background-color: #003366 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #001A33 !important;
+    box-shadow: 2.5px 2.5px 0px 0px #001A33 !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer !important;
 }
 .btn-aksi-blue:hover {
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
-    transform: translateY(-1.5px) !important;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.65) !important;
+    background-color: #002244 !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #001A33 !important;
+}
+.btn-aksi-blue:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #001A33 !important;
 }
 
-/* 4. Tombol Aksi Indigo / Ungu (Tracking Surat, Edit Jenis Surat) */
+/* 5. Tombol Aksi Indigo (Tracking Surat, Edit Jenis Surat) */
 .btn-aksi-indigo {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #818cf8 !important;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background-color: #6366F1 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #3730A3 !important;
+    box-shadow: 2.5px 2.5px 0px 0px #3730A3 !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer !important;
 }
 .btn-aksi-indigo:hover {
-    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
-    transform: translateY(-1.5px) !important;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.65) !important;
+    background-color: #4F46E5 !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #3730A3 !important;
+}
+.btn-aksi-indigo:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #3730A3 !important;
 }
 
-/* 5. Tombol Aksi Amber / Oranye (Edit Pegawai, Revisi Draft) */
+/* 6. Tombol Aksi Cyan (Informasi Surat) */
+.btn-aksi-cyan {
+    background-color: #0284C7 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #075985 !important;
+    box-shadow: 2.5px 2.5px 0px 0px #075985 !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+}
+.btn-aksi-cyan:hover {
+    background-color: #0369A1 !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #075985 !important;
+}
+.btn-aksi-cyan:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #075985 !important;
+}
+
+/* 7. Tombol Aksi Amber (Revisi Draft, Edit Berkas, Edit Pegawai) */
 .btn-aksi-amber {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #fbbf24 !important;
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background-color: #D97706 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #78350F !important;
+    box-shadow: 2.5px 2.5px 0px 0px #78350F !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer !important;
 }
 .btn-aksi-amber:hover {
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-    transform: translateY(-1.5px) !important;
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.65) !important;
+    background-color: #B45309 !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #78350F !important;
+}
+.btn-aksi-amber:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #78350F !important;
 }
 
-/* 6. Tombol Aksi Merah (Hapus Dokumen, Hapus Akun, Kembalikan Dokumen) */
+/* 8. Tombol Aksi Merah (Kembalikan Dokumen, Hapus Surat / Data) */
 .btn-aksi-red,
 .btn-modal-kembalikan {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #f87171 !important;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background-color: #E11D48 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #9F1239 !important;
+    box-shadow: 2.5px 2.5px 0px 0px #9F1239 !important;
+    font-weight: 800 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer !important;
 }
 .btn-aksi-red:hover,
 .btn-modal-kembalikan:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-    transform: translateY(-1.5px) !important;
-    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.65) !important;
+    background-color: #BE123C !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #9F1239 !important;
+}
+.btn-aksi-red:active,
+.btn-modal-kembalikan:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #9F1239 !important;
 }
 
-/* 7. Tombol Aksi Teal (Download Dokumen Final) */
+/* 9. Tombol Aksi Teal (Upload Final, Download Final) */
 .btn-aksi-teal {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #14b8a6 !important;
-    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.4) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background-color: #0D9488 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #115E59 !important;
+    box-shadow: 2.5px 2.5px 0px 0px #115E59 !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer !important;
 }
 .btn-aksi-teal:hover {
-    background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
-    transform: translateY(-1.5px) !important;
-    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.65) !important;
+    background-color: #0F766E !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #115E59 !important;
+}
+.btn-aksi-teal:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #115E59 !important;
 }
 
-/* 8. Kartu Radio Pilihan Modal */
+/* 10. Kartu Radio Pilihan Modal Soft Cartoon */
 .card-radio-teruskan-active {
-    background-color: #f0fdf4 !important;
-    border: 2px solid #16a34a !important;
-    box-shadow: 0 0 10px rgba(22, 163, 74, 0.25) !important;
+    background-color: #ECFDF5 !important;
+    border: 2px solid #059669 !important;
+    box-shadow: 3px 3px 0px 0px #059669 !important;
+    border-radius: 1rem !important;
 }
 .card-radio-kembalikan-active {
-    background-color: #fef2f2 !important;
-    border: 2px solid #dc2626 !important;
-    box-shadow: 0 0 10px rgba(220, 38, 38, 0.25) !important;
+    background-color: #FFF1F2 !important;
+    border: 2px solid #E11D48 !important;
+    box-shadow: 3px 3px 0px 0px #E11D48 !important;
+    border-radius: 1rem !important;
 }
 

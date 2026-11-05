@@ -2,13 +2,13 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <h2 class="font-extrabold text-xl text-white leading-tight flex items-center gap-2">
+                <h2 class="font-cartoon font-bold text-xl text-[#003366] leading-tight flex items-center gap-2">
                     <span>👥</span> {{ in_array(Auth::user()->role, ['super_admin', 'superadmin']) ? __('Kelola Hak Akses & Pegawai') : __('Manajemen Pegawai') }}
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">Kelola data seluruh akun pegawai, NIP, peran hak akses, kontak WhatsApp, serta reset password pengguna.</p>
+                <p class="text-xs text-slate-600 mt-1 font-medium">Kelola data seluruh akun pegawai, NIP, peran hak akses, kontak WhatsApp, serta reset password pengguna.</p>
             </div>
-            <a href="{{ route('dashboard') }}" class="glass-pill px-3.5 py-1.5 rounded-xl hover:bg-white/10 text-xs font-bold text-slate-300 hover:text-white transition inline-flex items-center gap-2 self-start sm:self-auto border border-white/15">
-                <span>&larr;</span> Kembali ke Dashboard
+            <a href="{{ route('dashboard') }}" class="btn-pop-white px-3.5 py-1.5 rounded-xl text-xs font-cartoon font-bold transition inline-flex items-center gap-2 self-start sm:self-auto cursor-pointer">
+                <span>&larr;</span> Kembali
             </a>
         </div>
     </x-slot>
@@ -60,29 +60,28 @@
             <!-- Banner Khusus: Hasil Pembuatan Password Baru (Lupa Password) -->
             @if (session('reset_password_data'))
                 @php $resetInfo = session('reset_password_data'); @endphp
-                <div class="p-5 mb-6 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900/90 to-teal-950/80 border-2 border-emerald-500/50 text-white shadow-2xl relative overflow-hidden backdrop-blur-md">
-                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="p-5 mb-6 cartoon-card rounded-3xl bg-emerald-50 border-2 border-emerald-600 text-slate-800 shadow-[4px_4px_0px_#059669] relative overflow-hidden font-cartoon">
                     <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
                         <div class="flex items-start gap-3.5">
-                            <div class="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                            <div class="w-11 h-11 rounded-2xl bg-emerald-100 border-2 border-emerald-600 flex items-center justify-center text-2xl flex-shrink-0 shadow-[2px_2px_0px_#059669]">
                                 🔑
                             </div>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <h4 class="font-extrabold text-base text-emerald-300">Kode Password Baru Berhasil Dibuat!</h4>
-                                    <span class="text-[11px] bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 px-2.5 py-0.5 rounded-full font-bold">Lupa Password</span>
+                                    <h4 class="font-extrabold text-base text-emerald-950">Kode Password Baru Berhasil Dibuat!</h4>
+                                    <span class="text-[11px] bg-emerald-200 border border-emerald-400 text-emerald-900 px-2.5 py-0.5 rounded-full font-black">Lupa Password</span>
                                 </div>
-                                <p class="text-xs text-slate-300 mt-1">
-                                    Password baru untuk pegawai <strong class="text-white">{{ $resetInfo['name'] }}</strong> (NIP: <span class="font-mono text-emerald-200 font-semibold">{{ $resetInfo['nip'] ?? '-' }}</span>) telah diperbarui di sistem.
+                                <p class="text-xs text-slate-700 mt-1 font-medium">
+                                    Password baru untuk pegawai <strong class="text-slate-900 font-extrabold">{{ $resetInfo['name'] }}</strong> (NIP: <span class="font-mono text-emerald-900 font-bold">{{ $resetInfo['nip'] ?? '-' }}</span>) telah diperbarui di sistem.
                                 </p>
                             </div>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                             <!-- Display Kode Password -->
-                            <div class="bg-slate-950/90 border border-emerald-400/50 rounded-xl px-4 py-2 flex items-center gap-3 shadow-inner">
-                                <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Password Baru:</span>
-                                <span class="font-mono text-xl font-extrabold text-emerald-300 tracking-widest select-all">{{ $resetInfo['password'] }}</span>
+                            <div class="bg-white border-2 border-emerald-500 rounded-xl px-4 py-2 flex items-center gap-3 shadow-[2px_2px_0px_#059669]">
+                                <span class="text-[11px] uppercase tracking-wider text-slate-500 font-bold">Password Baru:</span>
+                                <span class="font-mono text-xl font-black text-emerald-900 tracking-widest select-all">{{ $resetInfo['password'] }}</span>
                             </div>
 
                             <!-- Tombol Salin Password -->
@@ -108,7 +107,7 @@
                             @endif
 
                             <!-- Tombol Buka Modal Detail -->
-                            <button type="button" @click="showResultModal = true" class="glass-pill text-slate-300 hover:text-white py-2 px-3 rounded-xl text-xs font-semibold border border-white/15 transition">
+                            <button type="button" @click="showResultModal = true" class="btn-pop-white py-2 px-3 rounded-xl text-xs font-bold transition">
                                 🔍 Lihat Detail
                             </button>
                         </div>
@@ -149,68 +148,68 @@
             <!-- Top Header & Action Buttons & Search -->
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
                 <div>
-                    <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                    <h3 class="text-lg font-cartoon font-bold text-[#003366] flex items-center gap-2">
                         <span>Daftar Akun Pegawai & Hak Akses</span>
-                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                        <span class="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#F5B800] text-[#002244] border-2 border-[#002244]">
                             Total: {{ $users->count() }} Pegawai
                         </span>
                     </h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Kelola identitas, NIP/NIK, peran, reset password, dan kontak koordinasi pegawai.</p>
+                    <p class="text-xs text-slate-600 mt-0.5 font-medium">Kelola identitas, NIP/NIK, peran, reset password, dan kontak koordinasi pegawai.</p>
                 </div>
                 
                 <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
                     <!-- Pencarian Pegawai -->
                     <form method="GET" action="{{ route('pegawai.index') }}" class="relative flex-1 sm:w-64 lg:w-72">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIP, WhatsApp..." class="w-full bg-slate-900/80 border border-white/15 rounded-xl pl-8 pr-7 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-inner">
-                        <span class="absolute left-2.5 top-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIP, WhatsApp..." class="w-full bg-white border-2 border-[#003366] rounded-xl pl-8 pr-7 py-2 text-xs text-slate-900 font-semibold placeholder-slate-400 focus:outline-none focus:border-[#003366] focus:ring-2 focus:ring-[#F5B800]/50 shadow-[2px_2px_0px_#003366]">
+                        <span class="absolute left-2.5 top-2.5 text-xs text-slate-500 pointer-events-none">🔍</span>
                         @if(request('search'))
-                            <a href="{{ route('pegawai.index') }}" class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-white" title="Reset pencarian">&times;</a>
+                            <a href="{{ route('pegawai.index') }}" class="absolute right-2.5 top-2 text-xs text-slate-500 hover:text-slate-800" title="Reset pencarian">&times;</a>
                         @endif
                     </form>
 
                     <!-- Tombol Download Format Excel (.xls) -->
-                    <a href="{{ route('pegawai.template') }}" class="btn-aksi-emerald inline-flex items-center gap-1.5 font-bold py-2 px-3 rounded-xl shadow-md text-xs transition whitespace-nowrap">
+                    <a href="{{ route('pegawai.template') }}" class="btn-pop-white inline-flex items-center gap-1.5 font-cartoon py-2 px-3 rounded-xl text-xs transition whitespace-nowrap cursor-pointer">
                         <span>📥</span> Format (.xls)
                     </a>
 
                     <!-- Tombol Buka Panel Import -->
-                    <button @click="showImport = !showImport" class="btn-aksi-indigo inline-flex items-center gap-1.5 font-bold py-2 px-3 rounded-xl shadow-md text-xs transition whitespace-nowrap">
+                    <button @click="showImport = !showImport" class="btn-pop-navy inline-flex items-center gap-1.5 font-cartoon py-2 px-3 rounded-xl text-xs transition whitespace-nowrap cursor-pointer">
                         <span>📤</span> Import (.xls)
                     </button>
 
                     <!-- Tombol Tambah Pegawai Manual -->
-                    <a href="{{ route('pegawai.create') }}" class="btn-aksi-blue inline-flex items-center gap-1.5 font-bold py-2 px-3.5 rounded-xl shadow-md text-xs transition whitespace-nowrap">
+                    <a href="{{ route('pegawai.create') }}" class="btn-pop-gold inline-flex items-center gap-1.5 font-cartoon py-2 px-3.5 rounded-xl text-xs transition whitespace-nowrap cursor-pointer">
                         <span>+</span> Tambah Pegawai
                     </a>
                 </div>
             </div>
 
             <!-- Panel Box Import Data Excel (.xls) -->
-            <div x-show="showImport" x-transition class="mb-6 glass-panel rounded-2xl p-6 border border-indigo-500/30 shadow-2xl bg-slate-900/90 text-slate-200" style="display: none;">
+            <div x-show="showImport" x-transition class="mb-6 cartoon-card rounded-3xl p-6 border-2 border-[#003366] shadow-[4px_4px_0px_#003366] bg-white text-slate-800 font-cartoon" style="display: none;">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <h4 class="text-base font-extrabold text-white flex items-center">
+                        <h4 class="text-base font-bold text-[#003366] flex items-center">
                             <span class="mr-2">📤</span> Import Data Pegawai dari Excel (.xls)
                         </h4>
-                        <p class="text-xs text-indigo-300 mt-1">
+                        <p class="text-xs text-slate-600 mt-1">
                             Unggah file <strong>.xls</strong> dengan 3 kolom wajib: <strong>NAMA</strong>, <strong>NIP/NIK/NIM</strong>, dan <strong>Nomor Whatsapp</strong>. Seluruh pegawai yang diimpor akan otomatis mendapatkan hak akses sebagai <strong>Penyusun</strong>.
                         </p>
                     </div>
-                    <button @click="showImport = false" class="text-slate-400 hover:text-white text-xl font-bold transition">&times;</button>
+                    <button @click="showImport = false" class="text-slate-400 hover:text-slate-700 text-2xl font-bold transition cursor-pointer">&times;</button>
                 </div>
 
                 <form action="{{ route('pegawai.import') }}" method="POST" enctype="multipart/form-data" class="mt-4">
                     @csrf
                     <div class="flex flex-col md:flex-row items-center gap-4">
                         <div class="flex-1 w-full">
-                            <input type="file" name="file" required accept=".xls,.xlsx" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 bg-slate-900/80 border border-white/15 rounded-xl p-1.5 shadow-inner cursor-pointer">
-                            <p class="text-[11px] text-slate-400 mt-1.5">Format file yang didukung: <strong class="text-slate-300">.xls</strong> (Microsoft Excel) (Maks: 5MB). Pastikan menggunakan template yang telah disediakan.</p>
+                            <input type="file" name="file" required accept=".xls,.xlsx" class="block w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-2 file:border-[#003366] file:text-xs file:font-bold file:bg-blue-100 file:text-[#003366] hover:file:bg-blue-200 bg-slate-50 border-2 border-slate-300 rounded-xl p-1.5 shadow-xs cursor-pointer">
+                            <p class="text-[11px] text-slate-500 mt-1.5">Format file yang didukung: <strong class="text-slate-700">.xls</strong> (Microsoft Excel) (Maks: 5MB). Pastikan menggunakan template yang telah disediakan.</p>
                         </div>
                         <div class="flex items-center gap-2.5">
-                            <button type="submit" class="btn-aksi-indigo font-bold py-2.5 px-5 rounded-xl shadow-md text-xs transition whitespace-nowrap">
+                            <button type="submit" class="btn-pop-navy font-bold py-2.5 px-5 rounded-xl shadow-xs text-xs transition whitespace-nowrap cursor-pointer">
                                 🚀 Mulai Import
                             </button>
-                            <a href="{{ route('pegawai.template') }}" class="text-indigo-400 hover:text-indigo-300 text-xs font-semibold underline whitespace-nowrap transition">
+                            <a href="{{ route('pegawai.template') }}" class="text-[#003366] hover:text-blue-700 text-xs font-bold underline whitespace-nowrap transition">
                                 Unduh Template (.xls)
                             </a>
                         </div>
@@ -219,35 +218,35 @@
             </div>
 
             <!-- Tabel Data Pegawai -->
-            <div class="glass-panel rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+            <div class="cartoon-table-card rounded-3xl bg-white border-2 border-[#003366] shadow-[4px_4px_0px_#003366] overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-white/10">
-                        <thead class="bg-slate-950/70 border-b border-white/10">
+                    <table class="min-w-full divide-y-2 divide-slate-200">
+                        <thead class="bg-[#003366] text-white border-b-2 border-[#002244] font-cartoon text-xs">
                             <tr>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Pegawai</th>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">NIP / NIK / NIM</th>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Nomor WhatsApp</th>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Hak Akses (Role)</th>
-                                <th class="px-5 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Aksi & Password</th>
+                                <th class="px-5 py-4 text-left font-bold uppercase tracking-wider text-white">Nama Pegawai</th>
+                                <th class="px-5 py-4 text-left font-bold uppercase tracking-wider text-white">NIP / NIK / NIM</th>
+                                <th class="px-5 py-4 text-left font-bold uppercase tracking-wider text-white">Nomor WhatsApp</th>
+                                <th class="px-5 py-4 text-left font-bold uppercase tracking-wider text-white">Hak Akses (Role)</th>
+                                <th class="px-5 py-4 text-center font-bold uppercase tracking-wider text-white">Aksi & Password</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-white/5 bg-transparent">
+                        <tbody class="divide-y-2 divide-slate-100 bg-white">
                             @forelse ($users as $u)
-                                <tr class="hover:bg-white/[0.04] transition">
-                                    <td class="px-5 py-4 font-bold text-white flex items-center space-x-2">
+                                <tr class="hover:bg-amber-50/30 transition">
+                                    <td class="px-5 py-4 font-bold text-slate-900 flex items-center space-x-2">
                                         <span>{{ $u->name }}</span>
                                         @if($u->id === Auth::id())
-                                            <span class="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold px-2 py-0.5 rounded-full">Anda</span>
+                                            <span class="text-[10px] bg-blue-100 text-[#003366] border border-blue-300 font-bold px-2 py-0.5 rounded-full">Anda</span>
                                         @endif
                                     </td>
-                                    <td class="px-5 py-4 font-mono text-xs text-slate-300">
+                                    <td class="px-5 py-4 font-mono text-xs font-bold text-slate-800">
                                         @if(!empty($u->nip))
-                                            <span class="glass-pill text-slate-200 border border-white/15 px-2.5 py-1 rounded-md text-xs font-mono">{{ $u->nip }}</span>
+                                            {{ $u->nip }}
                                         @else
-                                            <span class="text-slate-500 italic text-xs">-</span>
+                                            <span class="text-slate-400 italic font-sans font-normal">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-5 py-4 text-xs text-slate-300">
+                                    <td class="px-5 py-4 text-xs font-semibold text-slate-700">
                                         @if(!empty($u->no_wa))
                                             @php
                                                 $cleanWa = preg_replace('/[^0-9]/', '', $u->no_wa);
@@ -255,25 +254,15 @@
                                                     $cleanWa = '62' . substr($cleanWa, 1);
                                                 }
                                             @endphp
-                                            <a href="https://wa.me/{{ $cleanWa }}" target="_blank" class="inline-flex items-center text-emerald-400 hover:text-emerald-300 font-semibold transition">
+                                            <a href="https://wa.me/{{ $cleanWa }}" target="_blank" class="inline-flex items-center text-emerald-800 hover:text-emerald-950 font-bold transition">
                                                 <span class="mr-1">💬</span> {{ $u->no_wa }}
                                             </a>
                                         @else
-                                            <span class="text-slate-500 italic text-xs">-</span>
+                                            <span class="text-slate-400 italic text-xs">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-5 py-4">
-                                        @php
-                                            $badgeClass = match($u->role) {
-                                                'super_admin', 'superadmin' => 'bg-purple-500/20 text-purple-300 border border-purple-400/30',
-                                                'penyusun' => 'bg-blue-500/20 text-blue-300 border border-blue-400/30',
-                                                'sekretaris_direktur' => 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30',
-                                                default => 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30',
-                                            };
-                                        @endphp
-                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $badgeClass }}">
-                                            {{ $u->role_label }}
-                                        </span>
+                                    <td class="px-5 py-4 text-xs font-bold text-slate-800">
+                                        {{ $u->role_label }}
                                     </td>
                                     <td class="px-5 py-4 text-center">
                                         <div class="flex items-center justify-center flex-wrap gap-1.5">
@@ -305,9 +294,9 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
+                                    <td colspan="5" class="px-6 py-12 text-center text-slate-600 font-medium">
                                         @if(request('search'))
-                                            Tidak ditemukan data pegawai dengan kata kunci "<span class="text-white">{{ request('search') }}</span>". <a href="{{ route('pegawai.index') }}" class="text-blue-400 underline font-semibold ml-1">Tampilkan semua</a>
+                                            Tidak ditemukan data pegawai dengan kata kunci "<span class="text-[#003366] font-bold">{{ request('search') }}</span>". <a href="{{ route('pegawai.index') }}" class="text-[#003366] underline font-bold ml-1">Tampilkan semua</a>
                                         @else
                                             Belum ada data pegawai yang terdaftar.
                                         @endif
@@ -331,53 +320,50 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
-             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-cartoon"
              style="display: none;">
             
-            <div class="glass-panel rounded-2xl p-6 sm:p-7 border border-teal-500/40 shadow-2xl bg-slate-900/95 text-slate-100 max-w-md w-full relative overflow-hidden"
+            <div class="cartoon-card rounded-3xl p-6 sm:p-7 border-2 border-[#003366] shadow-[8px_8px_0px_#003366] bg-white text-slate-800 max-w-md w-full relative overflow-hidden"
                  @click.outside="showConfirmModal = false">
-                
-                <!-- Ambient Glow Background -->
-                <div class="absolute -top-16 -right-16 w-36 h-36 bg-teal-500/15 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex items-start gap-4 mb-4">
-                    <div class="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-100 border-2 border-teal-500 flex items-center justify-center text-2xl flex-shrink-0 shadow-xs text-teal-900">
                         🔑
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-lg font-extrabold text-white">Konfirmasi Lupa Password</h3>
-                        <p class="text-xs text-slate-400 mt-1">Buat kode password baru secara instan untuk pegawai ini.</p>
+                        <h3 class="text-lg font-black text-[#003366]">Konfirmasi Lupa Password</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Buat kode password baru secara instan untuk pegawai ini.</p>
                     </div>
-                    <button type="button" @click="showConfirmModal = false" class="text-slate-400 hover:text-white text-xl font-bold transition">&times;</button>
+                    <button type="button" @click="showConfirmModal = false" class="text-slate-400 hover:text-slate-700 text-2xl font-bold transition cursor-pointer">&times;</button>
                 </div>
 
                 <!-- Info Pegawai yang Akan Direset -->
-                <div class="bg-slate-950/70 border border-white/10 rounded-xl p-4 my-4 space-y-2 text-xs">
-                    <div class="flex justify-between items-center pb-2 border-b border-white/5">
-                        <span class="text-slate-400">Nama Pegawai:</span>
-                        <span class="font-bold text-white text-right" x-text="targetUserName"></span>
+                <div class="bg-[#F8FAFC] border-2 border-slate-200 rounded-2xl p-4 my-4 space-y-2 text-xs">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                        <span class="text-slate-500">Nama Pegawai:</span>
+                        <span class="font-bold text-slate-900 text-right" x-text="targetUserName"></span>
                     </div>
-                    <div class="flex justify-between items-center pb-2 border-b border-white/5">
-                        <span class="text-slate-400">NIP / NIK / NIM:</span>
-                        <span class="font-mono text-emerald-300 font-bold text-right" x-text="targetUserNip"></span>
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                        <span class="text-slate-500">NIP / NIK / NIM:</span>
+                        <span class="font-mono text-emerald-700 font-bold text-right" x-text="targetUserNip"></span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-slate-400">Peran / Hak Akses:</span>
-                        <span class="text-indigo-300 font-semibold text-right" x-text="targetUserRole"></span>
+                        <span class="text-slate-500">Peran / Hak Akses:</span>
+                        <span class="text-indigo-700 font-bold text-right" x-text="targetUserRole"></span>
                     </div>
                 </div>
 
-                <div class="p-3 bg-teal-950/40 border border-teal-500/30 rounded-xl text-[11px] text-teal-200 flex items-start gap-2">
+                <div class="p-3.5 bg-teal-50 border-2 border-teal-300 rounded-2xl text-[11px] text-teal-950 flex items-start gap-2 shadow-xs">
                     <span class="text-sm">ℹ️</span>
                     <span>Sistem akan membuat <strong>kode password baru yang unik</strong> dan menampilkannya langsung di halaman ini agar dapat segera diberikan kepada pegawai bersangkutan.</span>
                 </div>
 
                 <form :action="'{{ url('/pegawai') }}/' + targetUserId + '/reset-password'" method="POST" class="mt-6 flex items-center justify-end gap-3">
                     @csrf
-                    <button type="button" @click="showConfirmModal = false" class="glass-pill px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white border border-white/15 transition">
+                    <button type="button" @click="showConfirmModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border-2 border-slate-300 transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="btn-aksi-teal font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition flex items-center gap-1.5 cursor-pointer">
+                    <button type="submit" class="btn-pop-navy font-bold px-5 py-2 rounded-xl text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                         🔑 Buat Password Baru
                     </button>
                 </form>
@@ -396,68 +382,64 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-cartoon"
                  style="display: none;">
                 
-                <div class="glass-panel rounded-3xl p-6 sm:p-8 border-2 border-emerald-500/50 shadow-2xl bg-slate-900/98 text-slate-100 max-w-lg w-full relative overflow-hidden"
+                <div class="cartoon-card rounded-3xl p-6 sm:p-8 border-2 border-[#003366] shadow-[8px_8px_0px_#003366] bg-white text-slate-800 max-w-lg w-full relative overflow-hidden"
                      @click.outside="showResultModal = false">
-                    
-                    <!-- Decorative Light Beam -->
-                    <div class="absolute -top-20 -right-20 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
                     <!-- Header Modal -->
-                    <div class="flex items-start justify-between gap-4 relative z-10 pb-4 border-b border-white/10">
+                    <div class="flex items-start justify-between gap-4 pb-4 border-b-2 border-slate-200">
                         <div class="flex items-center gap-3.5">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-3xl shadow-inner">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-3xl shadow-xs text-emerald-900">
                                 🔑
                             </div>
                             <div>
-                                <h3 class="text-lg font-extrabold text-white">Kode Password Baru</h3>
-                                <p class="text-xs text-emerald-400 font-semibold">Berhasil dibuat untuk pegawai di bawah ini</p>
+                                <h3 class="text-lg font-black text-[#003366]">Kode Password Baru</h3>
+                                <p class="text-xs text-emerald-700 font-bold">Berhasil dibuat untuk pegawai di bawah ini</p>
                             </div>
                         </div>
-                        <button type="button" @click="showResultModal = false" class="text-slate-400 hover:text-white text-2xl font-bold transition">&times;</button>
+                        <button type="button" @click="showResultModal = false" class="text-slate-400 hover:text-slate-700 text-2xl font-bold transition cursor-pointer">&times;</button>
                     </div>
 
                     <!-- Data Pegawai -->
-                    <div class="bg-slate-950/70 border border-white/10 rounded-2xl p-4 my-5 space-y-2 text-xs relative z-10">
-                        <div class="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span class="text-slate-400">Nama Pegawai:</span>
-                            <span class="font-extrabold text-white text-sm text-right">{{ $res['name'] }}</span>
+                    <div class="bg-[#F8FAFC] border-2 border-slate-200 rounded-2xl p-4 my-5 space-y-2 text-xs">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                            <span class="text-slate-500">Nama Pegawai:</span>
+                            <span class="font-extrabold text-slate-900 text-sm text-right">{{ $res['name'] }}</span>
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span class="text-slate-400">NIP / NIK / NIM:</span>
-                            <span class="font-mono text-emerald-300 font-bold text-sm text-right">{{ $res['nip'] ?? '-' }}</span>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                            <span class="text-slate-500">NIP / NIK / NIM:</span>
+                            <span class="font-mono text-emerald-700 font-bold text-sm text-right">{{ $res['nip'] ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span class="text-slate-400">Peran Hak Akses:</span>
-                            <span class="text-indigo-300 font-bold text-right">{{ $res['role'] }}</span>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                            <span class="text-slate-500">Peran Hak Akses:</span>
+                            <span class="text-indigo-700 font-bold text-right">{{ $res['role'] }}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-400">Waktu Reset:</span>
-                            <span class="text-slate-300 text-right">{{ $res['created_at'] }}</span>
+                            <span class="text-slate-500">Waktu Reset:</span>
+                            <span class="text-slate-700 font-medium text-right">{{ $res['created_at'] }}</span>
                         </div>
                     </div>
 
                     <!-- Box Display Kode Password Baru Besar -->
-                    <div class="relative z-10 my-4 text-center">
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Kode Password Baru (Silakan Dicatat/Salin):</span>
-                        <div class="bg-slate-950/95 border-2 border-emerald-400/60 rounded-2xl py-4 px-6 shadow-2xl relative group">
-                            <span class="font-mono text-3xl sm:text-4xl font-extrabold text-emerald-300 tracking-widest select-all block py-1 drop-shadow-[0_0_12px_rgba(52,211,153,0.5)]">
+                    <div class="my-4 text-center">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Kode Password Baru (Silakan Dicatat/Salin):</span>
+                        <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl py-4 px-6 shadow-[3px_3px_0px_#059669] relative group">
+                            <span class="font-mono text-3xl sm:text-4xl font-black text-emerald-900 tracking-widest select-all block py-1">
                                 {{ $res['password'] }}
                             </span>
                         </div>
                     </div>
 
                     <!-- Tombol Aksi Salin & Kirim WhatsApp -->
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 my-5 relative z-10">
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 my-5">
                         <!-- Tombol Salin -->
                         <button type="button" 
                                 @click="copyPassword('{{ $res['password'] }}')" 
-                                class="w-full sm:w-auto flex-1 btn-aksi-emerald font-extrabold py-3 px-5 rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                                class="w-full sm:w-auto flex-1 btn-pop-gold font-bold py-3 px-5 rounded-2xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
                             <span x-show="!copied">📋 Salin Password</span>
-                            <span x-show="copied" class="text-white font-extrabold" style="display: none;">✅ Berhasil Disalin ke Clipboard!</span>
+                            <span x-show="copied" class="text-[#002244] font-extrabold" style="display: none;">✅ Berhasil Disalin ke Clipboard!</span>
                         </button>
 
                         <!-- Tombol WhatsApp Jika Ada Nomor -->
@@ -469,21 +451,21 @@
                                 }
                                 $waMsg = rawurlencode("Halo Bapak/Ibu " . $res['name'] . ",\n\nPassword akun SURATKU (Politeknik Pekerjaan Umum) Anda telah diatur ulang oleh Super Admin.\n\n👤 NIP / Username: " . ($res['nip'] ?? '-') . "\n🔑 Password Baru: " . $res['password'] . "\n\nSilakan langsung login ke aplikasi SURATKU. Terima kasih.");
                             @endphp
-                            <a href="https://wa.me/{{ $cleanWa }}?text={{ $waMsg }}" target="_blank" class="w-full sm:w-auto flex-1 btn-aksi-teal font-extrabold py-3 px-5 rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                            <a href="https://wa.me/{{ $cleanWa }}?text={{ $waMsg }}" target="_blank" class="w-full sm:w-auto flex-1 btn-pop-navy font-bold py-3 px-5 rounded-2xl text-xs transition flex items-center justify-center gap-2 cursor-pointer">
                                 <span>💬</span> Kirim ke WhatsApp
                             </a>
                         @endif
                     </div>
 
                     <!-- Petunjuk / Keamanan -->
-                    <div class="p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl text-[11px] text-amber-200 flex items-start gap-2 relative z-10">
+                    <div class="p-3.5 bg-amber-50 border-2 border-amber-300 rounded-2xl text-[11px] text-amber-950 flex items-start gap-2 shadow-xs">
                         <span class="text-sm">⚠️</span>
                         <span>Pegawai dapat langsung masuk di halaman Login menggunakan <strong>NIP</strong> dan <strong>Password Baru</strong> di atas. Setelah jendela ini ditutup, password tetap tersimpan di akun pegawai.</span>
                     </div>
 
                     <!-- Tombol Tutup -->
-                    <div class="mt-6 flex justify-end relative z-10">
-                        <button type="button" @click="showResultModal = false" class="glass-pill px-6 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white border border-white/15 transition">
+                    <div class="mt-6 flex justify-end">
+                        <button type="button" @click="showResultModal = false" class="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border-2 border-slate-300 transition cursor-pointer">
                             Tutup Jendela
                         </button>
                     </div>

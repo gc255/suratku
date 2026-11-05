@@ -1,4 +1,4 @@
-@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1.5 bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl'])
+@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-0 bg-white border-2 border-[#003366] shadow-[6px_6px_0px_#003366] rounded-2xl overflow-hidden font-cartoon text-slate-800'])
 
 @php
 $alignmentClasses = match ($align) {
@@ -8,7 +8,7 @@ $alignmentClasses = match ($align) {
 };
 
 $width = match ($width) {
-    '48' => 'w-52',
+    '48' => 'w-60',
     default => $width,
 };
 @endphp
@@ -25,7 +25,7 @@ $width = match ($width) {
             x-transition:leave="transition ease-in duration-75"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
-            class="absolute z-50 mt-2 {{ $width }} rounded-xl shadow-2xl {{ $alignmentClasses }}"
+            class="absolute z-50 mt-2 {{ $width }} rounded-2xl shadow-xl {{ $alignmentClasses }}"
             style="display: none;"
             @click="open = false">
         <div class="{{ $contentClasses }}">

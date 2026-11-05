@@ -2,75 +2,88 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <h2 class="font-extrabold text-xl text-white leading-tight flex items-center gap-2">
+                <h2 class="font-cartoon font-bold text-xl text-[#003366] leading-tight flex items-center gap-2">
                     <span>📍</span> {{ __('Riwayat Perjalanan & Tracking Surat') }}
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">Pantau seluruh alur disposisi, verifikasi paraf, dan riwayat revisi surat secara real-time.</p>
+                <p class="text-xs text-slate-600 mt-1 font-medium">Pantau seluruh alur disposisi, verifikasi paraf, dan riwayat revisi surat secara real-time.</p>
             </div>
-            <a href="{{ route('dashboard') }}" class="glass-pill px-3.5 py-1.5 rounded-xl hover:bg-white/10 text-xs font-bold text-slate-300 hover:text-white transition inline-flex items-center gap-2 self-start sm:self-auto border border-white/15">
-                <span>&larr;</span> Kembali ke Dashboard
+            <a href="{{ route('dashboard') }}" class="btn-pop-white px-3.5 py-1.5 rounded-xl text-xs font-cartoon font-bold transition inline-flex items-center gap-2 self-start sm:self-auto cursor-pointer">
+                <span>&larr;</span> Kembali
             </a>
         </div>
     </x-slot>
 
     <div class="py-10">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="glass-panel rounded-2xl p-6 sm:p-8 border border-white/10 shadow-2xl text-slate-100">
+            <div class="cartoon-card rounded-3xl p-6 sm:p-8 bg-white text-slate-800">
                 
                 <!-- Header Detail Dokumen Surat -->
-                <div class="mb-8 border-b border-white/10 pb-6">
-                    <div class="flex items-center gap-2 text-xs font-semibold text-blue-400 mb-2">
+                <div class="mb-8 border-b-2 border-slate-100 pb-6">
+                    <div class="flex items-center gap-2 text-xs font-cartoon font-bold text-[#003366] mb-2">
                         <span>📄</span>
                         <span>INFORMASI DOKUMEN</span>
                     </div>
 
-                    <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ $surat->judul }}</h3>
+                    <h3 class="text-2xl sm:text-3xl font-cartoon font-bold text-[#003366] tracking-tight leading-snug">{{ $surat->judul }}</h3>
                     
                     <div class="flex flex-wrap items-center gap-2 mt-3">
                         @if($surat->nomor_surat)
-                            <span class="glass-pill text-emerald-300 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-mono font-bold" title="Nomor Surat Resmi">
+                            <span class="inline-flex items-center gap-1.5 font-mono font-bold text-xs text-[#003366] bg-sky-50 border-2 border-[#003366] shadow-[2px_2px_0px_#003366] px-3 py-1 rounded-xl" title="Nomor Surat Resmi">
                                 📄 {{ $surat->nomor_surat }}
                             </span>
                         @endif
                         @if($surat->jenisSurat)
-                            <span class="glass-pill text-blue-300 border border-blue-400/30 px-3 py-1 rounded-full text-xs font-bold">
+                            <span class="inline-flex items-center gap-1 font-bold text-xs text-[#003366] bg-blue-100 border border-blue-300 px-3 py-1 rounded-xl">
                                 📑 {{ $surat->jenisSurat->nama }}
                             </span>
                         @endif
                         @if($surat->tujuan_unit)
-                            <span class="glass-pill text-emerald-300 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-bold" title="Pemeriksa Unit/Prodi/Lab yang dituju">
+                            <span class="inline-flex items-center gap-1 font-bold text-xs text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-xl" title="Pemeriksa Unit/Prodi/Lab yang dituju">
                                 🏢 {{ $surat->tujuan_unit_label }}
                             </span>
                         @endif
                         @if($surat->tujuan_kasubbag)
-                            <span class="glass-pill text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-bold">
+                            <span class="inline-flex items-center gap-1 font-bold text-xs text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-xl">
                                 📌 {{ $surat->tujuan_kasubbag_label }}
                             </span>
                         @endif
                         @if($surat->tujuan_wadir)
-                            <span class="glass-pill text-purple-300 border border-purple-400/30 px-3 py-1 rounded-full text-xs font-bold">
+                            <span class="inline-flex items-center gap-1 font-bold text-xs text-purple-900 bg-purple-100 border border-purple-300 px-3 py-1 rounded-xl">
                                 🎯 {{ $surat->tujuan_wadir_label }}
                             </span>
                         @endif
                         @if($surat->tujuan_penandatangan)
-                            <span class="glass-pill text-cyan-300 border border-cyan-400/30 px-3 py-1 rounded-full text-xs font-bold" title="Penandatangan Dokumen">
+                            <span class="inline-flex items-center gap-1 font-bold text-xs text-cyan-900 bg-cyan-100 border border-cyan-300 px-3 py-1 rounded-xl" title="Penandatangan Dokumen">
                                 ✍️ TTD: {{ $surat->tujuan_penandatangan_label }}
                             </span>
                         @endif
-                        <span class="px-3 py-1 rounded-full text-xs font-bold shadow-xs {{ $surat->status_badge_class }}">
-                            Status: {{ $surat->status_label }}
-                        </span>
+                    </div>
+
+                    <!-- MODEL 2 BALON KOMIK STATUS DI HALAMAN TRACKING -->
+                    @php
+                        $bubble = $surat->speech_bubble_data;
+                    @endphp
+                    <div class="mt-4">
+                        <div class="speech-bubble rounded-2xl px-4 py-2.5 {{ $bubble['bg_class'] }} inline-block max-w-md shadow-[3px_3px_0px_#003366]">
+                            <div class="flex items-center gap-1.5 font-cartoon font-bold text-xs sm:text-sm">
+                                <span class="text-base">{{ $bubble['emoji'] }}</span>
+                                <span>"{{ $bubble['dialog'] }}"</span>
+                            </div>
+                            <p class="text-[11px] opacity-90 font-medium leading-tight mt-1">
+                                {{ $bubble['subtext'] }}
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Tombol Lihat Dokumen -->
                     <div class="mt-5 flex flex-wrap gap-2.5">
                         @if($surat->file_draft)
-                            <a href="{{ asset('storage/' . $surat->file_draft) }}" target="_blank" class="btn-aksi-blue inline-flex items-center gap-2 text-xs font-bold py-2 px-4 rounded-xl shadow-md transition">
+                            <a href="{{ asset('storage/' . $surat->file_draft) }}" target="_blank" class="btn-pop-navy inline-flex items-center gap-2 text-xs font-cartoon py-2 px-4 rounded-xl transition">
                                 <span>👁️</span> Lihat File Draft (Awal)
                             </a>
                         @endif
                         @if($surat->file_final)
-                            <a href="{{ asset('storage/' . $surat->file_final) }}" target="_blank" class="btn-aksi-emerald inline-flex items-center gap-2 text-xs font-bold py-2 px-4 rounded-xl shadow-md transition">
+                            <a href="{{ asset('storage/' . $surat->file_final) }}" target="_blank" class="btn-pop-gold inline-flex items-center gap-2 text-xs font-cartoon py-2 px-4 rounded-xl transition">
                                 <span>📥</span> Unduh File Final (TTD)
                             </a>
                         @endif
@@ -93,32 +106,32 @@
 
                 <!-- Alert Highlight jika status surat sedang Dikembalikan / Perlu Revisi -->
                 @if($isStatusDikembalikan && $catatanTerakhir)
-                    <div class="mb-8 p-5 rounded-2xl bg-rose-950/40 border border-rose-500/30 backdrop-blur-md shadow-lg shadow-rose-950/30">
+                    <div class="mb-8 p-5 rounded-3xl bg-rose-50 border-2 border-rose-600 shadow-[3px_3px_0px_#E11D48]">
                         <div class="flex items-start gap-3.5">
-                            <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xl shrink-0 shadow-xs">
+                            <div class="w-10 h-10 rounded-2xl bg-rose-200 border-2 border-rose-600 flex items-center justify-center text-rose-800 text-xl shrink-0">
                                 ⚠️
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <h4 class="text-xs font-extrabold text-rose-300 uppercase tracking-wider">
+                                    <h4 class="text-xs font-cartoon font-bold text-rose-800 uppercase tracking-wider">
                                         Surat Perlu Revisi / Dikembalikan
                                     </h4>
-                                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-900 border border-rose-400">
                                         {{ $surat->status_label }}
                                     </span>
                                 </div>
-                                <p class="text-xs text-rose-200/80 mt-0.5">Surat ini memerlukan perbaikan sebelum dapat diproses ke tingkat selanjutnya.</p>
+                                <p class="text-xs text-rose-800 mt-0.5 font-medium">Surat ini memerlukan perbaikan sebelum dapat diproses ke tingkat selanjutnya.</p>
                                 
-                                <div class="mt-3 p-3.5 bg-slate-900/80 border border-rose-500/30 rounded-xl shadow-inner">
-                                    <span class="text-xs font-bold text-rose-400 flex items-center gap-1.5 mb-1.5">
+                                <div class="mt-3 p-3.5 bg-white border-2 border-rose-300 rounded-2xl shadow-xs">
+                                    <span class="text-xs font-bold text-rose-800 flex items-center gap-1.5 mb-1.5">
                                         <span>💬</span> Catatan / Instruksi Revisi Terakhir:
                                     </span>
-                                    <p class="text-sm text-slate-100 font-medium whitespace-pre-line leading-relaxed">{{ $catatanTerakhir }}</p>
+                                    <p class="text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed">{{ $catatanTerakhir }}</p>
                                 </div>
 
                                 @if($surat->lampiran_revisi_terakhir)
                                     <div class="mt-3">
-                                        <a href="{{ asset('storage/' . $surat->lampiran_revisi_terakhir) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3.5 py-2 glass-pill hover:bg-white/10 text-rose-300 hover:text-white text-xs font-bold rounded-xl border border-rose-500/30 transition">
+                                        <a href="{{ asset('storage/' . $surat->lampiran_revisi_terakhir) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-bold rounded-xl border border-rose-400 transition">
                                             <span>📎</span> Unduh File Koreksi / Lampiran Revisi
                                         </a>
                                     </div>
@@ -128,119 +141,127 @@
                     </div>
                 @endif
 
+                <!-- Banner Dialog Maskot Naskah -->
+                <div class="mb-6 p-4 bg-gradient-to-r from-sky-50 via-amber-50 to-emerald-50 border-2 border-[#003366] rounded-2xl shadow-[3px_3px_0px_#003366] flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-white border-2 border-[#003366] shadow-[2px_2px_0px_#003366] flex items-center justify-center text-2xl shrink-0">
+                        📬
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-cartoon font-bold uppercase tracking-wider text-[#003366]">
+                            Catatan Perjalanan Naskah Dinas
+                        </h4>
+                        <p class="text-xs text-slate-600 font-medium mt-0.5">
+                            Pantau setiap langkah naskah surat dari draf awal, persetujuan paraf berjenjang, hingga resmi bertanda tangan dan terarsip!
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Visualisasi Timeline -->
                 <div class="mb-4">
-                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-6">
+                    <h4 class="text-xs font-cartoon font-bold uppercase tracking-wider text-[#003366] flex items-center gap-2 mb-6">
                         <span>⏱️</span>
                         <span>Log Jejak Audit & Kronologi Perjalanan</span>
                     </h4>
 
-                    <div class="relative border-l-2 border-blue-500/40 ml-4 space-y-8 pb-4">
+                    <div class="relative border-l-2 border-[#003366] ml-4 space-y-8 pb-4">
                         @forelse($trackings as $track)
                             @php
                                 $aksiLower = strtolower($track->aksi);
-                                $isItemKembali = str_contains($aksiLower, 'kembali') || str_contains($aksiLower, 'tolak') || (str_contains($aksiLower, 'revisi') && !str_contains($aksiLower, 'draft direvisi'));
+                                $isItemKembali = str_contains($aksiLower, 'kembali') || str_contains($aksiLower, 'tolak') || str_contains($aksiLower, 'balik dulu') || (str_contains($aksiLower, 'revisi') && !str_contains($aksiLower, 'draft direvisi'));
                                 $isCurrent = $loop->last;
                             @endphp
                             <div class="pl-8 relative">
                                 <!-- Titik Bulat Timeline -->
                                 @if($isCurrent)
-                                    <!-- Titik Saat Ini (Posisi Terakhir) Berkedip / Radar Ping -->
                                     <div class="absolute -left-[13px] top-0.5 flex items-center justify-center w-6 h-6">
-                                        <!-- Efek Radar Ping Berkedip -->
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-80 {{ $isItemKembali ? 'bg-rose-400' : 'bg-emerald-400' }}"></span>
-                                        <!-- Lingkaran Inti Bercahaya -->
-                                        <span class="relative inline-flex w-5 h-5 rounded-full border-2 border-slate-900 shadow-lg flex items-center justify-center text-white {{ $isItemKembali ? 'bg-rose-500 ring-4 ring-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.9)]' : 'bg-emerald-500 ring-4 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.9)]' }}">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-80 {{ $isItemKembali ? 'bg-rose-400' : 'bg-amber-400' }}"></span>
+                                        <span class="relative inline-flex w-5 h-5 rounded-full border-2 border-[#003366] shadow-sm flex items-center justify-center text-white {{ $isItemKembali ? 'bg-rose-500' : 'bg-[#F5B800]' }}">
                                             @if($isItemKembali)
-                                                <span class="text-[10px] font-black leading-none">!</span>
+                                                <span class="text-[10px] font-black leading-none text-white">!</span>
                                             @else
-                                                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                                <span class="w-2 h-2 rounded-full bg-[#002244]"></span>
                                             @endif
                                         </span>
                                     </div>
                                 @else
-                                    <!-- Titik Riwayat Sebelumnya -->
                                     <div class="absolute -left-[9px] top-1.5">
                                         @if($isItemKembali)
-                                            <div class="w-4 h-4 bg-rose-600 rounded-full border-2 border-[#090e1a] shadow-sm flex items-center justify-center text-white">
+                                            <div class="w-4 h-4 bg-rose-600 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white">
                                                 <span class="text-[8px] font-black leading-none">!</span>
                                             </div>
                                         @else
-                                            <div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-[#090e1a] shadow-sm"></div>
+                                            <div class="w-4 h-4 bg-[#003366] rounded-full border-2 border-white shadow-sm"></div>
                                         @endif
                                     </div>
                                 @endif
 
-                                <!-- Header Log -->
-                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <h5 class="font-bold text-base {{ $isItemKembali ? 'text-rose-400' : 'text-white' }}">{{ $surat->formatTrackingAksi($track, $isCurrent) }}</h5>
-                                        
-                                        @if($isCurrent)
-                                            <!-- Badge Khusus Titik Posisi Saat Ini (Berkedip) -->
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider shadow-sm {{ $isItemKembali ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.3)]' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]' }}">
-                                                <span class="relative flex h-2 w-2">
-                                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-80 {{ $isItemKembali ? 'bg-rose-300' : 'bg-emerald-300' }}"></span>
-                                                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $isItemKembali ? 'bg-rose-400' : 'bg-emerald-400' }}"></span>
+                                <!-- Header Log Card -->
+                                <div class="p-4 rounded-2xl border-2 {{ $isCurrent ? ($isItemKembali ? 'bg-rose-50/70 border-rose-500 shadow-[2px_2px_0px_#e11d48]' : 'bg-amber-50/60 border-[#003366] shadow-[2px_2px_0px_#003366]') : ($isItemKembali ? 'bg-rose-50/30 border-rose-200' : 'bg-white border-slate-200 shadow-xs') }}">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h5 class="font-cartoon font-bold text-sm sm:text-base leading-snug {{ $isItemKembali ? 'text-rose-700' : 'text-[#003366]' }}">{{ $surat->formatTrackingAksi($track, $isCurrent) }}</h5>
+                                            
+                                            @if($isCurrent)
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider {{ $isItemKembali ? 'bg-rose-200 text-rose-900 border border-rose-400' : 'bg-[#F5B800] text-[#002244] border border-[#002244]' }}">
+                                                    <span>📍 POSISI SAAT INI</span>
                                                 </span>
-                                                <span>POSISI SAAT INI</span>
-                                            </span>
-                                        @elseif($isItemKembali)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-400/30">
-                                                ↩️ DIKEMBALIKAN / REVISI
-                                            </span>
-                                        @endif
+                                            @elseif($isItemKembali)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                                    ↩️ CATATAN REVISI
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <p class="text-xs font-semibold text-slate-500 font-mono">{{ $track->created_at->translatedFormat('d M Y - H:i') }} WIB</p>
                                     </div>
-                                    <p class="text-xs font-semibold text-slate-400">{{ $track->created_at->translatedFormat('d M Y - H:i') }} WIB</p>
-                                </div>
 
-                                <p class="text-xs text-slate-300 mt-1">
-                                    Diproses oleh: <strong class="text-white">{{ $track->aktor->name ?? 'User' }}</strong> 
-                                    <span class="text-blue-300 font-mono">({{ strtoupper($track->aktor->role ?? '-') }})</span>
-                                </p>
+                                    <p class="text-xs text-slate-600 mt-1 font-medium">
+                                        Diproses oleh: <strong class="text-slate-900">{{ $track->aktor->name ?? 'User' }}</strong> 
+                                        <span class="text-[#003366] font-mono font-bold">({{ strtoupper($track->aktor->role ?? '-') }})</span>
+                                    </p>
 
-                                <!-- Catatan Log -->
-                                @if($track->catatan)
-                                    @if($isItemKembali)
-                                        <div class="mt-3 p-4 rounded-xl bg-rose-950/30 border border-rose-500/30 shadow-xs">
-                                            <div class="flex items-center text-xs font-bold text-rose-400 uppercase tracking-wider mb-2">
-                                                <span class="text-sm mr-1.5">💬</span>
-                                                <span>Catatan Revisi / Alasan Pengembalian:</span>
+                                    <!-- Catatan Log -->
+                                    @if($track->catatan)
+                                        @if($isItemKembali)
+                                            <div class="mt-3 p-3.5 rounded-xl bg-rose-100/70 border border-rose-300">
+                                                <div class="flex items-center text-xs font-bold text-rose-800 uppercase tracking-wider mb-1.5">
+                                                    <span class="text-sm mr-1.5">💬</span>
+                                                    <span>Catatan Revisi / Alasan:</span>
+                                                </div>
+                                                <div class="p-2.5 bg-white border border-rose-200 rounded-lg text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-line leading-relaxed">
+                                                    {{ $track->catatan }}
+                                                </div>
+                                                @if($track->file_lampiran)
+                                                    <div class="mt-2.5 pt-2 border-t border-rose-200">
+                                                        <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-rose-50 text-rose-800 text-xs font-bold rounded-lg border border-rose-300 transition">
+                                                            <span>📎</span> Unduh File Koreksi / Catatan Revisi
+                                                        </a>
+                                                    </div>
+                                                @endif
                                             </div>
-                                            <div class="p-3 bg-slate-900/80 border border-white/10 rounded-lg text-xs sm:text-sm text-slate-200 font-medium whitespace-pre-line leading-relaxed shadow-inner">
-                                                {{ $track->catatan }}
+                                        @else
+                                            <div class="mt-2.5 p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-700">
+                                                <span class="font-bold text-[#003366]">Catatan:</span>
+                                                <span class="text-slate-800 ml-1 italic">{{ $track->catatan }}</span>
                                             </div>
                                             @if($track->file_lampiran)
-                                                <div class="mt-3 pt-2.5 border-t border-rose-500/20">
-                                                    <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1.5 glass-pill hover:bg-white/10 text-rose-300 hover:text-white text-xs font-bold rounded-lg border border-rose-500/30 transition">
-                                                        <span>📎</span> Unduh File Koreksi / Catatan Revisi
+                                                <div class="mt-2.5">
+                                                    <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-slate-50 text-[#003366] text-xs font-bold rounded-lg border border-slate-300 transition">
+                                                        <span>📎</span> Unduh File Lampiran
                                                     </a>
                                                 </div>
                                             @endif
-                                        </div>
-                                    @else
-                                        <div class="mt-2.5 p-3.5 rounded-xl bg-slate-800/60 border border-white/10 text-xs text-slate-300">
-                                            <span class="font-bold text-blue-400">Catatan:</span>
-                                            <span class="text-slate-200 ml-1 italic">{{ $track->catatan }}</span>
-                                        </div>
-                                        @if($track->file_lampiran)
-                                            <div class="mt-2.5">
-                                                <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1.5 glass-pill hover:bg-white/10 text-blue-300 hover:text-white text-xs font-bold rounded-lg border border-white/15 transition">
-                                                    <span>📎</span> Unduh File Lampiran
-                                                </a>
-                                            </div>
                                         @endif
+                                    @elseif($track->file_lampiran)
+                                        <div class="mt-2.5">
+                                            <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-slate-50 text-rose-800 text-xs font-bold rounded-lg border border-rose-300 transition">
+                                                <span>📎</span> Unduh File Koreksi / Catatan Revisi
+                                            </a>
+                                        </div>
                                     @endif
-                                @elseif($track->file_lampiran)
-                                    <div class="mt-2.5">
-                                        <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1.5 glass-pill hover:bg-white/10 text-rose-300 hover:text-white text-xs font-bold rounded-lg border border-rose-500/30 transition">
-                                            <span>📎</span> Unduh File Koreksi / Catatan Revisi
-                                        </a>
-                                    </div>
-                                @endif
+                                </div>
                             </div>
                         @empty
-                            <p class="text-slate-400 text-sm italic pl-6">Belum ada riwayat tracking untuk surat ini.</p>
+                            <p class="text-slate-500 text-sm italic pl-6 font-medium">Belum ada riwayat tracking untuk surat ini.</p>
                         @endforelse
                     </div>
                 </div>
