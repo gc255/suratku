@@ -146,19 +146,26 @@ class SuratKeluar extends Model
             return $query;
         }
 
-        return $query->where(function($q) use ($user) {
+        static $hasRahasiaCol = null;
+        if ($hasRahasiaCol === null) {
+            $hasRahasiaCol = \Illuminate\Support\Facades\Schema::hasColumn('surat_keluars', 'tujuan_rahasia_role');
+        }
+
+        return $query->where(function($q) use ($user, $hasRahasiaCol) {
             // Dokumen biasa (non-rahasia): selalu tampil sesuai alur/filter role
             $q->whereDoesntHave('jenisSurat', function($js) {
                 $js->where('kode', 'SR')->orWhere('nama', 'like', '%Rahasia%');
             })
             // ATAU Dokumen rahasia: HANYA tampil jika pembuat, sedang dituju, pernah memproses, atau pengunggah final
-            ->orWhere(function($sub) use ($user) {
+            ->orWhere(function($sub) use ($user, $hasRahasiaCol) {
                 $sub->whereHas('jenisSurat', function($js) {
                     $js->where('kode', 'SR')->orWhere('nama', 'like', '%Rahasia%');
-                })->where(function($authQ) use ($user) {
-                    $authQ->where('pembuat_id', $user->id)
-                          ->orWhere('tujuan_rahasia_role', $user->role)
-                          ->orWhere('pengunggah_final_id', $user->id)
+                })->where(function($authQ) use ($user, $hasRahasiaCol) {
+                    $authQ->where('pembuat_id', $user->id);
+                    if ($hasRahasiaCol) {
+                        $authQ->orWhere('tujuan_rahasia_role', $user->role);
+                    }
+                    $authQ->orWhere('pengunggah_final_id', $user->id)
                           ->orWhereHas('trackings', function($t) use ($user) {
                               $t->where('aktor_id', $user->id);
                           });
