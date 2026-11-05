@@ -21,6 +21,19 @@ Route::get('/', function () {
 Route::get('/dashboard', function (Request $request) { 
     $user = Auth::user();
     
+    // Cek keberadaan kolom secara dinamis agar aman terhadap database yang belum termigrasi
+    $hasRahasiaCol = \Illuminate\Support\Facades\Schema::hasColumn('surat_keluars', 'tujuan_rahasia_role');
+    $hasPpkCol = \Illuminate\Support\Facades\Schema::hasColumn('surat_keluars', 'tujuan_ppk');
+
+    $rahasiaSub = function($sub) use ($user, $hasRahasiaCol) {
+        $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA);
+        if ($hasRahasiaCol) {
+            $sub->where('tujuan_rahasia_role', $user->role);
+        } else {
+            $sub->whereRaw('1 = 0');
+        }
+    };
+
     // ==========================================
     // 1. MENGHITUNG ANGKA UNTUK KARTU STATISTIK
     // ==========================================
@@ -44,7 +57,7 @@ Route::get('/dashboard', function (Request $request) {
         
         // Hitung spesifik surat yang butuh tindakan mereka saat ini
         if (User::isPemeriksaUnit($user->role)) {
-            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
                 $q->where(function($sub) use ($user) {
                     $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT])
                         ->where(function($u) use ($user) {
@@ -56,69 +69,53 @@ Route::get('/dashboard', function (Request $request) {
                         ->where(function($u) use ($user) {
                             $u->where('tujuan_unit', $user->role)->orWhereNull('tujuan_unit');
                         });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             })->count();
         } elseif (User::isPpk($user->role)) {
-            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
-                $q->where(function($sub) use ($user) {
-                    $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK])
-                        ->where(function($u) use ($user) {
+            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasPpkCol, $rahasiaSub) {
+                $q->where(function($sub) use ($user, $hasPpkCol) {
+                    $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK]);
+                    if ($hasPpkCol) {
+                        $sub->where(function($u) use ($user) {
                             $u->where('tujuan_ppk', $user->role)->orWhereNull('tujuan_ppk');
                         });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                    }
+                })->orWhere($rahasiaSub);
             })->count();
         } elseif (in_array($user->role, ['kasubbag_akademik', 'kasubbag_psi', 'kasubbag_keuangan'])) {
-            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
                 $q->where(function($sub) use ($user) {
                     $sub->whereIn('status', [
                         SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG
                     ])->where(function($kq) use ($user) {
                         $kq->where('tujuan_kasubbag', $user->role)->orWhereNull('tujuan_kasubbag');
                     });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             })->count();
         } elseif ($user->role === 'sekretaris_kabag') {
-            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
                 $q->whereIn('status', [
                     SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG
-                ])->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                ])->orWhere($rahasiaSub);
             })->count();
         } elseif (in_array($user->role, ['sekretaris_wadir_1', 'sekretaris_wadir_2', 'sekretaris_wadir_3'])) {
-            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
                 $q->where(function($sub) use ($user) {
                     $sub->whereIn('status', [
                         SuratKeluar::STATUS_MENUNGGU_WADIR, 'PARAF_KABAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_WADIR
                     ])->where(function($wq) use ($user) {
                         $wq->where('tujuan_wadir', $user->role)->orWhereNull('tujuan_wadir');
                     });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             })->count();
         } elseif ($user->role === 'sekretaris_direktur') {
-            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+            $statProses = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
                 $q->whereIn('status', [
                     SuratKeluar::STATUS_MENUNGGU_DIREKTUR, 'PARAF_WADIR'
                 ])->orWhere(function($sub) {
                     $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'])
                         ->where('tujuan_penandatangan', 'direktur');
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             })->count();
         }
     }
@@ -177,7 +174,7 @@ Route::get('/dashboard', function (Request $request) {
         }
     } elseif (User::isPemeriksaUnit($user->role)) {
         // PEMERIKSA UNIT / PRODI / LAB
-        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
             $q->where(function($sub) use ($user) {
                 $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT])
                     ->where(function($u) use ($user) {
@@ -189,10 +186,7 @@ Route::get('/dashboard', function (Request $request) {
                     ->where(function($u) use ($user) {
                         $u->where('tujuan_unit', $user->role)->orWhereNull('tujuan_unit');
                     });
-            })->orWhere(function($sub) use ($user) {
-                $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                    ->where('tujuan_rahasia_role', $user->role);
-            });
+            })->orWhere($rahasiaSub);
         });
         $countAntrean = (clone $antreanQuery)->count();
 
@@ -203,12 +197,14 @@ Route::get('/dashboard', function (Request $request) {
         ]);
         $countSudahParaf = (clone $sudahParafQuery)->count();
 
-        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
-            $q->where('tujuan_unit', $user->role)
-              ->orWhere('tujuan_rahasia_role', $user->role)
-              ->orWhereHas('trackings', function($t) use ($user) {
-                  $t->where('aktor_id', $user->id);
-              });
+        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasRahasiaCol) {
+            $q->where('tujuan_unit', $user->role);
+            if ($hasRahasiaCol) {
+                $q->orWhere('tujuan_rahasia_role', $user->role);
+            }
+            $q->orWhereHas('trackings', function($t) use ($user) {
+                $t->where('aktor_id', $user->id);
+            });
         });
         $countSemua = (clone $semuaQuery)->count();
 
@@ -219,16 +215,18 @@ Route::get('/dashboard', function (Request $request) {
                 SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT
             ]);
         } elseif ($activeTab === 'semua') {
-            $query->where(function($q) use ($user) {
-                $q->where('tujuan_unit', $user->role)
-                  ->orWhere('tujuan_rahasia_role', $user->role)
-                  ->orWhereHas('trackings', function($t) use ($user) {
-                      $t->where('aktor_id', $user->id);
-                  });
+            $query->where(function($q) use ($user, $hasRahasiaCol) {
+                $q->where('tujuan_unit', $user->role);
+                if ($hasRahasiaCol) {
+                    $q->orWhere('tujuan_rahasia_role', $user->role);
+                }
+                $q->orWhereHas('trackings', function($t) use ($user) {
+                    $t->where('aktor_id', $user->id);
+                });
             });
         } else {
             // Default: antrean
-            $query->where(function($q) use ($user) {
+            $query->where(function($q) use ($user, $rahasiaSub) {
                 $q->where(function($sub) use ($user) {
                     $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT])
                         ->where(function($u) use ($user) {
@@ -240,24 +238,20 @@ Route::get('/dashboard', function (Request $request) {
                         ->where(function($u) use ($user) {
                             $u->where('tujuan_unit', $user->role)->orWhereNull('tujuan_unit');
                         });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             });
         }
     } elseif (User::isPpk($user->role)) {
         // PEJABAT PEMBUAT KOMITMEN (PPK 1 / PPK 2)
-        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
-            $q->where(function($sub) use ($user) {
-                $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK])
-                    ->where(function($u) use ($user) {
+        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasPpkCol, $rahasiaSub) {
+            $q->where(function($sub) use ($user, $hasPpkCol) {
+                $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK]);
+                if ($hasPpkCol) {
+                    $sub->where(function($u) use ($user) {
                         $u->where('tujuan_ppk', $user->role)->orWhereNull('tujuan_ppk');
                     });
-            })->orWhere(function($sub) use ($user) {
-                $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                    ->where('tujuan_rahasia_role', $user->role);
-            });
+                }
+            })->orWhere($rahasiaSub);
         });
         $countAntrean = (clone $antreanQuery)->count();
 
@@ -268,12 +262,18 @@ Route::get('/dashboard', function (Request $request) {
         ]);
         $countSudahParaf = (clone $sudahParafQuery)->count();
 
-        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
-            $q->where('tujuan_ppk', $user->role)
-              ->orWhere('tujuan_rahasia_role', $user->role)
-              ->orWhereHas('trackings', function($t) use ($user) {
-                  $t->where('aktor_id', $user->id);
-              });
+        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasPpkCol, $hasRahasiaCol) {
+            if ($hasPpkCol) {
+                $q->where('tujuan_ppk', $user->role);
+            } else {
+                $q->whereRaw('1 = 0');
+            }
+            if ($hasRahasiaCol) {
+                $q->orWhere('tujuan_rahasia_role', $user->role);
+            }
+            $q->orWhereHas('trackings', function($t) use ($user) {
+                $t->where('aktor_id', $user->id);
+            });
         });
         $countSemua = (clone $semuaQuery)->count();
 
@@ -284,40 +284,42 @@ Route::get('/dashboard', function (Request $request) {
                 SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK
             ]);
         } elseif ($activeTab === 'semua') {
-            $query->where(function($q) use ($user) {
-                $q->where('tujuan_ppk', $user->role)
-                  ->orWhere('tujuan_rahasia_role', $user->role)
-                  ->orWhereHas('trackings', function($t) use ($user) {
-                      $t->where('aktor_id', $user->id);
-                  });
+            $query->where(function($q) use ($user, $hasPpkCol, $hasRahasiaCol) {
+                if ($hasPpkCol) {
+                    $q->where('tujuan_ppk', $user->role);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
+                if ($hasRahasiaCol) {
+                    $q->orWhere('tujuan_rahasia_role', $user->role);
+                }
+                $q->orWhereHas('trackings', function($t) use ($user) {
+                    $t->where('aktor_id', $user->id);
+                });
             });
         } else {
             // Default: antrean
-            $query->where(function($q) use ($user) {
-                $q->where(function($sub) use ($user) {
-                    $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK])
-                        ->where(function($u) use ($user) {
+            $query->where(function($q) use ($user, $hasPpkCol, $rahasiaSub) {
+                $q->where(function($sub) use ($user, $hasPpkCol) {
+                    $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK]);
+                    if ($hasPpkCol) {
+                        $sub->where(function($u) use ($user) {
                             $u->where('tujuan_ppk', $user->role)->orWhereNull('tujuan_ppk');
                         });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                    }
+                })->orWhere($rahasiaSub);
             });
         }
     } elseif (in_array($user->role, ['kasubbag_akademik', 'kasubbag_psi', 'kasubbag_keuangan'])) {
         // KASUBBAG
-        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
             $q->where(function($sub) use ($user) {
                 $sub->whereIn('status', [
                     SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG
                 ])->where(function($kq) use ($user) {
                     $kq->where('tujuan_kasubbag', $user->role)->orWhereNull('tujuan_kasubbag');
                 });
-            })->orWhere(function($sub) use ($user) {
-                $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                    ->where('tujuan_rahasia_role', $user->role);
-            });
+            })->orWhere($rahasiaSub);
         });
         $countAntrean = (clone $antreanQuery)->count();
 
@@ -328,12 +330,14 @@ Route::get('/dashboard', function (Request $request) {
         ]);
         $countSudahParaf = (clone $sudahParafQuery)->count();
 
-        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
-            $q->where('tujuan_kasubbag', $user->role)
-              ->orWhere('tujuan_rahasia_role', $user->role)
-              ->orWhereHas('trackings', function($t) use ($user) {
-                  $t->where('aktor_id', $user->id);
-              });
+        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasRahasiaCol) {
+            $q->where('tujuan_kasubbag', $user->role);
+            if ($hasRahasiaCol) {
+                $q->orWhere('tujuan_rahasia_role', $user->role);
+            }
+            $q->orWhereHas('trackings', function($t) use ($user) {
+                $t->where('aktor_id', $user->id);
+            });
         });
         $countSemua = (clone $semuaQuery)->count();
 
@@ -344,37 +348,33 @@ Route::get('/dashboard', function (Request $request) {
                 SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG
             ]);
         } elseif ($activeTab === 'semua') {
-            $query->where(function($q) use ($user) {
-                $q->where('tujuan_kasubbag', $user->role)
-                  ->orWhere('tujuan_rahasia_role', $user->role)
-                  ->orWhereHas('trackings', function($t) use ($user) {
-                      $t->where('aktor_id', $user->id);
-                  });
+            $query->where(function($q) use ($user, $hasRahasiaCol) {
+                $q->where('tujuan_kasubbag', $user->role);
+                if ($hasRahasiaCol) {
+                    $q->orWhere('tujuan_rahasia_role', $user->role);
+                }
+                $q->orWhereHas('trackings', function($t) use ($user) {
+                    $t->where('aktor_id', $user->id);
+                });
             });
         } else {
             // Default: antrean
-            $query->where(function($q) use ($user) {
+            $query->where(function($q) use ($user, $rahasiaSub) {
                 $q->where(function($sub) use ($user) {
                     $sub->whereIn('status', [
                         SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG
                     ])->where(function($kq) use ($user) {
                         $kq->where('tujuan_kasubbag', $user->role)->orWhereNull('tujuan_kasubbag');
                     });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             });
         }
     } elseif ($user->role === 'sekretaris_kabag') {
         // SEKRETARIS KABAG
-        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
             $q->whereIn('status', [
                 SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG
-            ])->orWhere(function($sub) use ($user) {
-                $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                    ->where('tujuan_rahasia_role', $user->role);
-            });
+            ])->orWhere($rahasiaSub);
         });
         $countAntrean = (clone $antreanQuery)->count();
 
@@ -385,12 +385,14 @@ Route::get('/dashboard', function (Request $request) {
         ]);
         $countSudahParaf = (clone $sudahParafQuery)->count();
 
-        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
-            $q->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG])
-              ->orWhere('tujuan_rahasia_role', $user->role)
-              ->orWhereHas('trackings', function($t) use ($user) {
-                  $t->where('aktor_id', $user->id);
-              });
+        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasRahasiaCol) {
+            $q->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG]);
+            if ($hasRahasiaCol) {
+                $q->orWhere('tujuan_rahasia_role', $user->role);
+            }
+            $q->orWhereHas('trackings', function($t) use ($user) {
+                $t->where('aktor_id', $user->id);
+            });
         });
         $countSemua = (clone $semuaQuery)->count();
 
@@ -401,36 +403,32 @@ Route::get('/dashboard', function (Request $request) {
                 SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG
             ]);
         } elseif ($activeTab === 'semua') {
-            $query->where(function($q) use ($user) {
-                $q->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG])
-                  ->orWhere('tujuan_rahasia_role', $user->role)
-                  ->orWhereHas('trackings', function($t) use ($user) {
-                      $t->where('aktor_id', $user->id);
-                  });
+            $query->where(function($q) use ($user, $hasRahasiaCol) {
+                $q->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG]);
+                if ($hasRahasiaCol) {
+                    $q->orWhere('tujuan_rahasia_role', $user->role);
+                }
+                $q->orWhereHas('trackings', function($t) use ($user) {
+                    $t->where('aktor_id', $user->id);
+                });
             });
         } else {
-            $query->where(function($q) use ($user) {
+            $query->where(function($q) use ($user, $rahasiaSub) {
                 $q->whereIn('status', [
                     SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG
-                ])->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                ])->orWhere($rahasiaSub);
             });
         }
     } elseif (in_array($user->role, ['sekretaris_wadir_1', 'sekretaris_wadir_2', 'sekretaris_wadir_3'])) {
         // SEKRETARIS WADIR
-        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
             $q->where(function($sub) use ($user) {
                 $sub->whereIn('status', [
                     SuratKeluar::STATUS_MENUNGGU_WADIR, 'PARAF_KABAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_WADIR
                 ])->where(function($wq) use ($user) {
                     $wq->where('tujuan_wadir', $user->role)->orWhereNull('tujuan_wadir');
                 });
-            })->orWhere(function($sub) use ($user) {
-                $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                    ->where('tujuan_rahasia_role', $user->role);
-            });
+            })->orWhere($rahasiaSub);
         });
         $countAntrean = (clone $antreanQuery)->count();
 
@@ -441,12 +439,14 @@ Route::get('/dashboard', function (Request $request) {
         ]);
         $countSudahParaf = (clone $sudahParafQuery)->count();
 
-        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
-            $q->where('tujuan_wadir', $user->role)
-              ->orWhere('tujuan_rahasia_role', $user->role)
-              ->orWhereHas('trackings', function($t) use ($user) {
-                  $t->where('aktor_id', $user->id);
-              });
+        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasRahasiaCol) {
+            $q->where('tujuan_wadir', $user->role);
+            if ($hasRahasiaCol) {
+                $q->orWhere('tujuan_rahasia_role', $user->role);
+            }
+            $q->orWhereHas('trackings', function($t) use ($user) {
+                $t->where('aktor_id', $user->id);
+            });
         });
         $countSemua = (clone $semuaQuery)->count();
 
@@ -457,39 +457,35 @@ Route::get('/dashboard', function (Request $request) {
                 SuratKeluar::STATUS_MENUNGGU_WADIR, 'PARAF_KABAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_WADIR
             ]);
         } elseif ($activeTab === 'semua') {
-            $query->where(function($q) use ($user) {
-                $q->where('tujuan_wadir', $user->role)
-                  ->orWhere('tujuan_rahasia_role', $user->role)
-                  ->orWhereHas('trackings', function($t) use ($user) {
-                      $t->where('aktor_id', $user->id);
-                  });
+            $query->where(function($q) use ($user, $hasRahasiaCol) {
+                $q->where('tujuan_wadir', $user->role);
+                if ($hasRahasiaCol) {
+                    $q->orWhere('tujuan_rahasia_role', $user->role);
+                }
+                $q->orWhereHas('trackings', function($t) use ($user) {
+                    $t->where('aktor_id', $user->id);
+                });
             });
         } else {
-            $query->where(function($q) use ($user) {
+            $query->where(function($q) use ($user, $rahasiaSub) {
                 $q->where(function($sub) use ($user) {
                     $sub->whereIn('status', [
                         SuratKeluar::STATUS_MENUNGGU_WADIR, 'PARAF_KABAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_WADIR
                     ])->where(function($wq) use ($user) {
                         $wq->where('tujuan_wadir', $user->role)->orWhereNull('tujuan_wadir');
                     });
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             });
         }
     } elseif ($user->role === 'sekretaris_direktur') {
         // SEKRETARIS DIREKTUR:
-        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+        $antreanQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $rahasiaSub) {
             $q->whereIn('status', [
                 SuratKeluar::STATUS_MENUNGGU_DIREKTUR, 'PARAF_WADIR'
             ])->orWhere(function($sub) {
                 $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'])
                     ->where('tujuan_penandatangan', 'direktur');
-            })->orWhere(function($sub) use ($user) {
-                $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                    ->where('tujuan_rahasia_role', $user->role);
-            });
+            })->orWhere($rahasiaSub);
         });
         $countAntrean = (clone $antreanQuery)->count();
 
@@ -498,7 +494,7 @@ Route::get('/dashboard', function (Request $request) {
         $countSudahParaf = (clone $sudahParafQuery)->count();
 
         // Tab 3 'semua' (Semua Surat Masuk)
-        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user) {
+        $semuaQuery = SuratKeluar::visibleForUser($user)->where(function($q) use ($user, $hasRahasiaCol) {
             $q->whereIn('status', [
                 SuratKeluar::STATUS_MENUNGGU_DIREKTUR, 'PARAF_WADIR',
                 SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD',
@@ -507,14 +503,17 @@ Route::get('/dashboard', function (Request $request) {
             ])->orWhere(function($sub) {
                 $sub->where('tujuan_penandatangan', '!=', 'direktur')
                     ->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD', 'DIARSIPKAN']);
-            })->orWhere('tujuan_rahasia_role', $user->role);
+            });
+            if ($hasRahasiaCol) {
+                $q->orWhere('tujuan_rahasia_role', $user->role);
+            }
         });
         $countSemua = (clone $semuaQuery)->count();
 
         if ($activeTab === 'sudah_paraf') {
             $query->where('status', 'DIARSIPKAN');
         } elseif ($activeTab === 'semua') {
-            $query->where(function($q) use ($user) {
+            $query->where(function($q) use ($user, $hasRahasiaCol) {
                 $q->whereIn('status', [
                     SuratKeluar::STATUS_MENUNGGU_DIREKTUR, 'PARAF_WADIR',
                     SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD',
@@ -523,20 +522,20 @@ Route::get('/dashboard', function (Request $request) {
                 ])->orWhere(function($sub) {
                     $sub->where('tujuan_penandatangan', '!=', 'direktur')
                         ->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD', 'DIARSIPKAN']);
-                })->orWhere('tujuan_rahasia_role', $user->role);
+                });
+                if ($hasRahasiaCol) {
+                    $q->orWhere('tujuan_rahasia_role', $user->role);
+                }
             });
         } else {
             // Default: 'antrean' (Menunggu Tindakan)
-            $query->where(function($q) use ($user) {
+            $query->where(function($q) use ($user, $rahasiaSub) {
                 $q->whereIn('status', [
                     SuratKeluar::STATUS_MENUNGGU_DIREKTUR, 'PARAF_WADIR'
                 ])->orWhere(function($sub) {
                     $sub->whereIn('status', [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'])
                         ->where('tujuan_penandatangan', 'direktur');
-                })->orWhere(function($sub) use ($user) {
-                    $sub->where('status', SuratKeluar::STATUS_MENUNGGU_RAHASIA)
-                        ->where('tujuan_rahasia_role', $user->role);
-                });
+                })->orWhere($rahasiaSub);
             });
         }
     }
