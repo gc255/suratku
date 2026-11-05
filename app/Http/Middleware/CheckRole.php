@@ -34,6 +34,11 @@ class CheckRole
             return $next($request);
         }
 
+        // 4. Jika rute mengizinkan grup 'ppk' dan user adalah salah satu role PPK
+        if (in_array('ppk', $roles) && User::isPpk($user->role)) {
+            return $next($request);
+        }
+
         // Jika tidak lolos verifikasi, arahkan kembali ke dashboard dengan peringatan
         return redirect()->route('dashboard')->with('error', 'Akses Ditolak! Anda tidak memiliki izin untuk membuka halaman atau melakukan aksi tersebut.');
     }

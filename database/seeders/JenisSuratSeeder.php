@@ -55,6 +55,12 @@ class JenisSuratSeeder extends Seeder
                 'keterangan' => 'Naskah dinas intern untuk komunikasi kedinasan antar unit kerja.',
                 'is_active' => true,
             ],
+            [
+                'nama' => 'Surat Rahasia',
+                'kode' => 'SR',
+                'keterangan' => 'Surat rahasia dan konfidensial dengan alur paraf bebas dan hak akses tertutup khusus pihak yang dituju.',
+                'is_active' => true,
+            ],
         ];
 
         foreach ($data as $item) {

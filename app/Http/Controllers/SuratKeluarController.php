@@ -23,8 +23,10 @@ class SuratKeluarController extends Controller
         $kepalaLabs = User::getKepalaLabRoles();
         $pemeriksaUnits = User::getPemeriksaUnitRoles();
 
-        // Daftar 3 Kasubbag
+        // Daftar PPK & Kasubbag
+        $ppks = User::getPpkRoles();
         $kasubbags = User::getKasubbagRoles();
+        $allGroupedRoles = User::getGroupedRoleLabels();
 
         // Opsi Penandatangan
         $opsiPenandatangan = SuratKeluar::getOpsiPenandatangan();
@@ -35,7 +37,9 @@ class SuratKeluarController extends Controller
             'ketuaUnits', 
             'kepalaLabs', 
             'pemeriksaUnits', 
+            'ppks',
             'kasubbags', 
+            'allGroupedRoles',
             'opsiPenandatangan'
         ));
     }
@@ -43,18 +47,66 @@ class SuratKeluarController extends Controller
     // Fungsi untuk memproses data yang dikirim dari form
     public function store(Request $request)
     {
+        $jenisSurat = JenisSurat::findOrFail($request->jenis_surat_id);
+        $isRahasia = ($jenisSurat->kode === 'SR' || stripos($jenisSurat->nama, 'Rahasia') !== false);
+        $isSpt = ($jenisSurat->kode === 'SPT' || stripos($jenisSurat->nama, 'SPT') !== false || stripos($jenisSurat->nama, 'Perintah Tugas') !== false);
+
+        // KASUS 1: SURAT RAHASIA (Tujuan bebas tanpa hirarki berurutan, tertutup)
+        if ($isRahasia) {
+            $allRoleKeys = array_keys(User::getRoleLabels());
+            $request->validate([
+                'judul' => 'required|string|max:255',
+                'jenis_surat_id' => 'required|exists:jenis_surats,id',
+                'tujuan_rahasia_role' => 'required|in:' . implode(',', $allRoleKeys),
+                'file_draft' => 'required|mimes:pdf,doc,docx|max:5120',
+            ], [
+                'judul.required' => 'Judul surat rahasia wajib diisi.',
+                'tujuan_rahasia_role.required' => 'Silakan pilih pejabat tujuan surat rahasia.',
+                'tujuan_rahasia_role.in' => 'Pilihan pejabat tujuan surat rahasia tidak valid.',
+                'file_draft.required' => 'File draft surat wajib diunggah.',
+                'file_draft.mimes' => 'File draft harus berformat PDF, DOC, atau DOCX.',
+                'file_draft.max' => 'Ukuran file draft maksimal 5MB.',
+            ]);
+
+            $path = $request->file('file_draft')->store('draft_surat', 'public');
+            $targetRahasiaLabel = User::getRoleLabels()[$request->tujuan_rahasia_role] ?? 'Pihak Terkait';
+
+            $surat = SuratKeluar::create([
+                'judul' => $request->judul,
+                'jenis_surat_id' => $request->jenis_surat_id,
+                'tujuan_rahasia_role' => $request->tujuan_rahasia_role,
+                'tujuan_penandatangan' => $request->input('tujuan_penandatangan', 'direktur'),
+                'file_draft' => $path,
+                'pembuat_id' => Auth::id(),
+                'status' => SuratKeluar::STATUS_MENUNGGU_RAHASIA,
+            ]);
+
+            TrackingSurat::create([
+                'surat_keluar_id' => $surat->id,
+                'aktor_id' => Auth::id(),
+                'aksi' => 'DRAFT RAHASIA DIBUAT dan menunggu paraf ' . $targetRahasiaLabel,
+                'catatan' => 'Penyusun mengunggah draft surat rahasia tertutup ditujukan khusus ke ' . $targetRahasiaLabel . '.',
+            ]);
+
+            return redirect()->route('dashboard')->with('success', 'Draft surat rahasia berhasil diunggah dan dialirkan tertutup ke ' . $targetRahasiaLabel . '!');
+        }
+
+        // KASUS 2: SURAT REGULER & SPT
         $unitKeys = array_keys(User::getPemeriksaUnitRoles());
         $kasubbagKeys = array_keys(User::getKasubbagRoles());
+        $ppkKeys = array_keys(User::getPpkRoles());
         $penandatanganKeys = array_keys(SuratKeluar::getOpsiPenandatangan());
 
-        // 1. Validasi input (Penyusun hanya memilih pemeriksa awal & penandatangan akhir)
-        $request->validate([
+        // 1. Validasi input (Penyusun hanya memilih pemeriksa awal & penandatangan akhir, serta PPK khusus SPT)
+        $rules = [
             'judul' => 'required|string|max:255',
             'jenis_surat_id' => 'required|exists:jenis_surats,id',
             'pemeriksa_awal' => 'required|string',
             'tujuan_penandatangan' => 'required|in:' . implode(',', $penandatanganKeys),
             'file_draft' => 'required|mimes:pdf,doc,docx|max:5120', // Maks 5MB
-        ], [
+        ];
+
+        $messages = [
             'judul.required' => 'Judul surat wajib diisi.',
             'jenis_surat_id.required' => 'Silakan pilih jenis surat.',
             'jenis_surat_id.exists' => 'Jenis surat yang dipilih tidak valid atau sudah dinonaktifkan.',
@@ -63,23 +115,30 @@ class SuratKeluarController extends Controller
             'file_draft.required' => 'File draft surat wajib diunggah.',
             'file_draft.mimes' => 'File draft harus berformat PDF, DOC, atau DOCX.',
             'file_draft.max' => 'Ukuran file draft maksimal 5MB.',
-        ]);
+        ];
+
+        if ($isSpt) {
+            $rules['tujuan_ppk'] = 'required|in:' . implode(',', $ppkKeys);
+            $messages['tujuan_ppk.required'] = 'Khusus surat SPT, wajib memilih Pejabat Pembuat Komitmen (PPK) yang dituju.';
+            $messages['tujuan_ppk.in'] = 'Pilihan Pejabat Pembuat Komitmen (PPK) tidak valid.';
+        }
+
+        $request->validate($rules, $messages);
 
         $pemeriksaAwal = $request->pemeriksa_awal;
         $tujuanUnit = null;
+        $tujuanPpk = $isSpt ? $request->tujuan_ppk : null;
         $tujuanKasubbag = null;
         $initialStatus = '';
         $targetAwalLabel = '';
 
         if (in_array($pemeriksaAwal, $unitKeys)) {
-            // Memulai dari Unit / Prodi / Lab (Kasubbag tujuan akan dipilih nanti oleh pemeriksa pertama)
+            // Memulai dari Unit / Prodi / Lab
             $tujuanUnit = $pemeriksaAwal;
-            $tujuanKasubbag = null;
             $initialStatus = SuratKeluar::STATUS_MENUNGGU_UNIT;
             $targetAwalLabel = User::getPemeriksaUnitRoles()[$tujuanUnit] ?? 'Unit';
         } elseif (in_array($pemeriksaAwal, $kasubbagKeys)) {
-            // Memulai langsung ke Kasubbag (by-pass unit)
-            $tujuanUnit = null;
+            // Memulai langsung ke Kasubbag
             $tujuanKasubbag = $pemeriksaAwal;
             $initialStatus = SuratKeluar::STATUS_MENUNGGU_KASUBBAG;
             $targetAwalLabel = User::getKasubbagRoles()[$tujuanKasubbag] ?? 'Kasubbag';
@@ -100,6 +159,7 @@ class SuratKeluarController extends Controller
             'judul' => $request->judul,
             'jenis_surat_id' => $request->jenis_surat_id,
             'tujuan_unit' => $tujuanUnit,
+            'tujuan_ppk' => $tujuanPpk,
             'tujuan_kasubbag' => $tujuanKasubbag,
             'tujuan_penandatangan' => $request->tujuan_penandatangan,
             'file_draft' => $path,
@@ -110,12 +170,13 @@ class SuratKeluarController extends Controller
         // 4. Simpan catatan ke tabel tracking_surats
         $isAwalFinal = ($surat->tujuan_penandatangan === ($tujuanUnit ? 'unit' : 'kasubbag'));
         $targetAksiWord = $isAwalFinal ? 'tanda tangan ' : 'paraf ';
+        $ppkCatatanInfo = ($isSpt && $tujuanPpk) ? (' (PPK: ' . (User::getPpkRoles()[$tujuanPpk] ?? 'PPK') . ')') : '';
 
         TrackingSurat::create([
             'surat_keluar_id' => $surat->id,
             'aktor_id' => Auth::id(),
             'aksi' => 'DRAFT DIBUAT dan menunggu ' . $targetAksiWord . $targetAwalLabel,
-            'catatan' => 'Penyusun mengunggah draft awal ditujukan ke ' . $targetAwalLabel . ' (Penandatangan: ' . $surat->tujuan_penandatangan_label . ').',
+            'catatan' => 'Penyusun mengunggah draft awal ditujukan ke ' . $targetAwalLabel . $ppkCatatanInfo . ' (Penandatangan: ' . $surat->tujuan_penandatangan_label . ').',
         ]);
 
         // 5. Kembalikan ke halaman dashboard dengan pesan sukses
@@ -146,7 +207,7 @@ class SuratKeluarController extends Controller
             $request->validate([
                 'komentar' => 'required|string|min:3|max:1000',
                 'file_lampiran' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
-                'target_kembali' => 'nullable|string|in:penyusun,unit,kasubbag,kabag,wadir',
+                'target_kembali' => 'nullable|string|in:penyusun,unit,ppk,kasubbag,kabag,wadir',
             ], [
                 'komentar.required' => 'Wajib menuliskan catatan/alasan saat mengembalikan atau meminta revisi surat.',
                 'komentar.min' => 'Catatan revisi minimal 3 karakter.',
@@ -160,7 +221,11 @@ class SuratKeluarController extends Controller
             // Validasi status alur agar hanya pihak yang sedang menunggu surat yang dapat mengembalikannya
             if (!$isSuperAdmin) {
                 $canKembalikan = false;
-                if (User::isPemeriksaUnit($user->role) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT])) {
+                if ($surat->isRahasia()) {
+                    $canKembalikan = ($surat->tujuan_rahasia_role === $user->role);
+                } elseif (User::isPpk($user->role) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK])) {
+                    $canKembalikan = true;
+                } elseif (User::isPemeriksaUnit($user->role) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT])) {
                     $canKembalikan = true;
                 } elseif (in_array($user->role, ['kasubbag_akademik', 'kasubbag_psi', 'kasubbag_keuangan']) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG])) {
                     $canKembalikan = true;
@@ -177,7 +242,11 @@ class SuratKeluarController extends Controller
                 }
             }
 
-            if (User::isPemeriksaUnit($user->role)) {
+            if (User::isPpk($user->role)) {
+                if ($surat->tujuan_ppk && $surat->tujuan_ppk !== $user->role && !$isSuperAdmin) {
+                    return back()->with('error', 'Akses Ditolak! Dokumen surat ini ditujukan ke ' . ($surat->tujuan_ppk_label ?? 'PPK lain') . '.');
+                }
+            } elseif (User::isPemeriksaUnit($user->role)) {
                 if ($surat->tujuan_unit && $surat->tujuan_unit !== $user->role && !$isSuperAdmin) {
                     return back()->with('error', 'Akses Ditolak! Dokumen surat ini ditujukan ke ' . ($surat->tujuan_unit_label ?? 'Unit lain') . '.');
                 }
@@ -225,6 +294,10 @@ class SuratKeluarController extends Controller
                 $statusBaru = SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG;
                 $targetLabel = $surat->tujuan_kasubbag_label ?? 'Kasubbag';
                 $pesanSukses = 'Surat berhasil dikembalikan ke ' . $targetLabel . ' beserta catatan revisi.';
+            } elseif ($targetPilihan === 'ppk') {
+                $statusBaru = SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK;
+                $targetLabel = $surat->tujuan_ppk_label ?? 'Pejabat Pembuat Komitmen (PPK)';
+                $pesanSukses = 'Surat berhasil dikembalikan ke ' . $targetLabel . ' beserta catatan revisi.';
             } elseif ($targetPilihan === 'unit') {
                 $statusBaru = SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT;
                 $targetLabel = $surat->tujuan_unit_label ?? 'Unit/Prodi/Lab';
@@ -250,7 +323,87 @@ class SuratKeluarController extends Controller
         }
 
         // =========================================================================
-        // SKENARIO B: DISETUJUI & DITERUSKAN / DITANDATANGANI
+        // SKENARIO B: DITOLAK (PROSES SURAT DIHENTIKAN)
+        // =========================================================================
+        if ($keputusan === 'ditolak') {
+            $request->validate([
+                'komentar' => 'required|string|min:3|max:1000',
+                'file_lampiran' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            ], [
+                'komentar.required' => 'Wajib menuliskan alasan penolakan dokumen surat.',
+                'komentar.min' => 'Alasan penolakan minimal 3 karakter.',
+                'file_lampiran.mimes' => 'Format file lampiran harus PDF, DOC, DOCX, JPG, JPEG, atau PNG.',
+                'file_lampiran.max' => 'Ukuran file lampiran maksimal 10MB.',
+            ]);
+
+            // Validasi hak akses peninjau
+            $isSuperAdmin = in_array($user->role, ['super_admin', 'superadmin']);
+
+            if (!$isSuperAdmin) {
+                $canTolak = false;
+                if ($surat->isRahasia()) {
+                    $canTolak = ($surat->tujuan_rahasia_role === $user->role);
+                } elseif (User::isPpk($user->role) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK])) {
+                    $canTolak = true;
+                } elseif (User::isPemeriksaUnit($user->role) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT])) {
+                    $canTolak = true;
+                } elseif (in_array($user->role, ['kasubbag_akademik', 'kasubbag_psi', 'kasubbag_keuangan']) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG])) {
+                    $canTolak = true;
+                } elseif ($user->role === 'sekretaris_kabag' && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_KABAG, 'PARAF_KASUBBAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KABAG])) {
+                    $canTolak = true;
+                } elseif (in_array($user->role, ['sekretaris_wadir_1', 'sekretaris_wadir_2', 'sekretaris_wadir_3']) && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_WADIR, 'PARAF_KABAG', SuratKeluar::STATUS_DIKEMBALIKAN_KE_WADIR])) {
+                    $canTolak = true;
+                } elseif ($user->role === 'sekretaris_direktur' && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_DIREKTUR, 'PARAF_WADIR'])) {
+                    $canTolak = true;
+                }
+
+                if (!$canTolak) {
+                    return back()->with('error', 'Akses Ditolak! Dokumen saat ini tidak sedang menunggu tindakan dari jabatan Anda.');
+                }
+            }
+
+            if (User::isPpk($user->role)) {
+                if ($surat->tujuan_ppk && $surat->tujuan_ppk !== $user->role && !$isSuperAdmin) {
+                    return back()->with('error', 'Akses Ditolak! Dokumen surat ini ditujukan ke ' . ($surat->tujuan_ppk_label ?? 'PPK lain') . '.');
+                }
+            } elseif (User::isPemeriksaUnit($user->role)) {
+                if ($surat->tujuan_unit && $surat->tujuan_unit !== $user->role && !$isSuperAdmin) {
+                    return back()->with('error', 'Akses Ditolak! Dokumen surat ini ditujukan ke ' . ($surat->tujuan_unit_label ?? 'Unit lain') . '.');
+                }
+            } elseif (in_array($user->role, ['kasubbag_akademik', 'kasubbag_psi', 'kasubbag_keuangan'])) {
+                if ($surat->tujuan_kasubbag && $surat->tujuan_kasubbag !== $user->role && !$isSuperAdmin) {
+                    return back()->with('error', 'Akses Ditolak! Dokumen surat ini ditujukan ke ' . ($surat->tujuan_kasubbag_label ?? 'Kasubbag lain') . '.');
+                }
+            } elseif (in_array($user->role, ['sekretaris_wadir_1', 'sekretaris_wadir_2', 'sekretaris_wadir_3'])) {
+                if ($surat->tujuan_wadir && $surat->tujuan_wadir !== $user->role && !$isSuperAdmin) {
+                    return back()->with('error', 'Akses Ditolak! Dokumen surat ini diteruskan ke ' . ($surat->tujuan_wadir_label ?? 'Wakil Direktur lain') . '.');
+                }
+            }
+
+            $komentar = trim($request->komentar);
+            $pathLampiran = null;
+            if ($request->hasFile('file_lampiran')) {
+                $pathLampiran = $request->file('file_lampiran')->store('lampiran_revisi', 'public');
+            }
+
+            $surat->status = SuratKeluar::STATUS_DITOLAK;
+            $surat->catatan_terakhir = $komentar;
+            $surat->lampiran_revisi_terakhir = $pathLampiran;
+            $surat->save();
+
+            TrackingSurat::create([
+                'surat_keluar_id' => $surat->id,
+                'aktor_id' => $user->id,
+                'aksi' => 'Ditolak oleh ' . $user->role_label,
+                'catatan' => $komentar,
+                'file_lampiran' => $pathLampiran,
+            ]);
+
+            return back()->with('success', 'Dokumen surat berhasil ditolak. Seluruh alur proses telah dihentikan.');
+        }
+
+        // =========================================================================
+        // SKENARIO C: DISETUJUI & DITERUSKAN / DITANDATANGANI
         // =========================================================================
         $komentarPersetujuan = $request->filled('komentar') ? trim($request->komentar) : null;
         $surat->catatan_terakhir = $komentarPersetujuan;
@@ -263,8 +416,40 @@ class SuratKeluarController extends Controller
 
         $targetPenandatangan = $surat->tujuan_penandatangan ?? 'direktur';
 
+        // JALUR KHUSUS 1: SURAT RAHASIA (Alur bebas tanpa hirarki berurutan, tertutup)
+        if ($surat->isRahasia()) {
+            if (in_array($user->role, ['super_admin', 'superadmin'])) {
+                return back()->with('error', 'Akses Ditolak! Super Admin tidak diizinkan memproses atau memparaf surat rahasia.');
+            }
+            if ($surat->status !== SuratKeluar::STATUS_MENUNGGU_RAHASIA || $surat->tujuan_rahasia_role !== $user->role) {
+                return back()->with('error', 'Aksi Ditolak! Dokumen surat rahasia saat ini tidak sedang menunggu tindakan dari Anda.');
+            }
+
+            if ($request->boolean('is_final_sign') || $request->input('aksi_rahasia') === 'ttd') {
+                $statusBaru = SuratKeluar::STATUS_MENUNGGU_FINAL;
+                $namaAksi = 'Ditandatangani ' . $user->role_label . ' dan menunggu upload berkas final';
+                $catatan = 'Dokumen rahasia disetujui & ditandatangani oleh ' . $user->role_label . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
+                $pesan = 'Dokumen rahasia berhasil ditandatangani! Silakan unggah file final yang telah ditandatangani.';
+            } else {
+                $allRoleKeys = array_keys(User::getRoleLabels());
+                $request->validate([
+                    'tujuan_rahasia_role' => 'required|in:' . implode(',', $allRoleKeys),
+                ], [
+                    'tujuan_rahasia_role.required' => 'Silakan pilih pejabat tujuan selanjutnya untuk surat rahasia.',
+                    'tujuan_rahasia_role.in' => 'Pilihan pejabat tujuan tidak valid.',
+                ]);
+
+                $surat->tujuan_rahasia_role = $request->tujuan_rahasia_role;
+                $nextLabel = User::getRoleLabels()[$request->tujuan_rahasia_role] ?? 'Pihak Terkait';
+                $statusBaru = SuratKeluar::STATUS_MENUNGGU_RAHASIA;
+                $namaAksi = 'Diparaf ' . $user->role_label . ' dan diteruskan rahasia ke ' . $nextLabel;
+                $catatan = 'Dokumen rahasia diverifikasi oleh ' . $user->role_label . ' dan diteruskan tertutup ke ' . $nextLabel . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
+                $pesan = 'Dokumen rahasia berhasil diparaf dan diteruskan tertutup ke ' . $nextLabel . '!';
+            }
+        }
+
         // TAHAP 0: Unit / Prodi / Lab Memberikan Paraf atau TTD
-        if (User::isPemeriksaUnit($user->role)) {
+        elseif (User::isPemeriksaUnit($user->role)) {
             if (!in_array($user->role, ['super_admin', 'superadmin'])) {
                 if (!in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_UNIT, SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT])) {
                     return back()->with('error', 'Aksi Ditolak! Dokumen saat ini tidak sedang menunggu tindakan dari Unit/Prodi/Lab.');
@@ -285,6 +470,21 @@ class SuratKeluarController extends Controller
                 $namaAksi = 'Ditandatangani ' . $unitLabel . ' dan menunggu upload berkas final';
                 $catatan = $unitLabel . ' telah memeriksa, menyetujui, dan menandatangani dokumen surat.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
                 $pesan = 'Dokumen berhasil ditandatangani! Silakan unggah file final yang telah ditandatangani dan dicap.';
+            } elseif ($surat->isSpt()) {
+                // Khusus surat SPT, diteruskan ke PPK yang telah ditentukan (atau update jika dikirim)
+                if ($request->filled('tujuan_ppk')) {
+                    $ppkRoles = array_keys(User::getPpkRoles());
+                    $request->validate([
+                        'tujuan_ppk' => 'required|in:' . implode(',', $ppkRoles),
+                    ]);
+                    $surat->tujuan_ppk = $request->tujuan_ppk;
+                }
+
+                $ppkLabel = $surat->tujuan_ppk_label ?? 'PPK Terkait';
+                $statusBaru = SuratKeluar::STATUS_MENUNGGU_PPK;
+                $namaAksi = 'Diparaf ' . $unitLabel . ' dan menunggu paraf ' . $ppkLabel;
+                $catatan = 'Dokumen SPT telah diperiksa oleh ' . $unitLabel . '. Diteruskan ke ' . $ppkLabel . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
+                $pesan = 'Dokumen SPT berhasil diverifikasi dan diteruskan ke ' . $ppkLabel . '!';
             } else {
                 // Unit memilih Kasubbag tujuan sebagai pemeriksa lanjutan
                 $kasubbagRoles = array_keys(User::getKasubbagRoles());
@@ -303,6 +503,51 @@ class SuratKeluarController extends Controller
                 $namaAksi = 'Diparaf ' . $unitLabel . ' dan menunggu ' . $targetWord . $kasubbagTujuanLabel;
                 $catatan = 'Dokumen telah diperiksa dan diparaf oleh ' . $unitLabel . '. Diteruskan ke ' . $kasubbagTujuanLabel . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
                 $pesan = 'Surat berhasil diparaf dan diteruskan ke ' . $kasubbagTujuanLabel . '!';
+            }
+        }
+
+        // TAHAP 0.5: PPK (Pejabat Pembuat Komitmen) Memverifikasi SPT
+        elseif (User::isPpk($user->role)) {
+            if (!in_array($user->role, ['super_admin', 'superadmin'])) {
+                if (!in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_PPK, SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK])) {
+                    return back()->with('error', 'Aksi Ditolak! Dokumen saat ini tidak sedang menunggu tindakan dari PPK.');
+                }
+            }
+
+            if ($surat->tujuan_ppk && $surat->tujuan_ppk !== $user->role && !in_array($user->role, ['super_admin', 'superadmin'])) {
+                return back()->with('error', 'Akses Ditolak! Dokumen surat ini ditujukan ke ' . ($surat->tujuan_ppk_label ?? 'PPK lain') . '.');
+            }
+
+            $ppkLabel = in_array($user->role, ['super_admin', 'superadmin']) 
+                ? ($surat->tujuan_ppk_label ?? 'PPK') 
+                : $user->role_label;
+
+            if ($surat->tujuan_unit === null) {
+                // KASUS 2: Pemeriksa pertama adalah Kasubbag. Setelah dari PPK, langsung melanjutkan ke Kabag dan seterusnya
+                $isKabagFinal = ($targetPenandatangan === 'kabag');
+                $targetWord = $isKabagFinal ? 'tanda tangan ' : 'paraf ';
+                $statusBaru = SuratKeluar::STATUS_MENUNGGU_KABAG;
+                $namaAksi = 'Diparaf ' . $ppkLabel . ' dan menunggu ' . $targetWord . 'Kepala Bagian (Kabag)';
+                $catatan = 'Dokumen SPT telah diverifikasi dan disetujui oleh ' . $ppkLabel . '. Diteruskan ke Kepala Bagian (Kabag).' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
+                $pesan = 'Dokumen SPT berhasil diverifikasi oleh PPK dan diteruskan ke Kepala Bagian (Kabag)!';
+            } else {
+                // KASUS 3: Pemeriksa pertama adalah Unit (Kaprodi / Ka Unit / Ka Lab). Setelah dari PPK, PPK memilih Kasubbag tujuan
+                $kasubbagRoles = array_keys(User::getKasubbagRoles());
+                $request->validate([
+                    'tujuan_kasubbag' => 'required|in:' . implode(',', $kasubbagRoles),
+                ], [
+                    'tujuan_kasubbag.required' => 'Silakan pilih Kepala Subbagian (Kasubbag) yang dituju sebagai pemeriksa lanjutan.',
+                    'tujuan_kasubbag.in' => 'Pilihan Kepala Subbagian tidak valid.',
+                ]);
+
+                $surat->tujuan_kasubbag = $request->tujuan_kasubbag;
+                $kasubbagTujuanLabel = User::getKasubbagRoles()[$request->tujuan_kasubbag] ?? 'Kasubbag Terkait';
+                $isKasubbagFinal = ($targetPenandatangan === 'kasubbag');
+                $targetWord = $isKasubbagFinal ? 'tanda tangan ' : 'paraf ';
+                $statusBaru = SuratKeluar::STATUS_MENUNGGU_KASUBBAG;
+                $namaAksi = 'Diparaf ' . $ppkLabel . ' dan menunggu ' . $targetWord . $kasubbagTujuanLabel;
+                $catatan = 'Dokumen SPT telah diverifikasi dan disetujui oleh ' . $ppkLabel . '. Diteruskan ke ' . $kasubbagTujuanLabel . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
+                $pesan = 'Dokumen SPT berhasil diverifikasi oleh PPK dan diteruskan ke ' . $kasubbagTujuanLabel . '!';
             }
         }
 
@@ -328,6 +573,13 @@ class SuratKeluarController extends Controller
                 $namaAksi = 'Ditandatangani ' . $kasubbagLabel . ' dan menunggu upload berkas final';
                 $catatan = $kasubbagLabel . ' telah memeriksa, menyetujui, dan menandatangani dokumen surat.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
                 $pesan = 'Dokumen berhasil ditandatangani! Silakan unggah file final yang telah ditandatangani.';
+            } elseif ($surat->isSpt() && $surat->tujuan_unit === null && in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_KASUBBAG, 'DIBUAT', SuratKeluar::STATUS_DIKEMBALIKAN_KE_KASUBBAG]) && $surat->tujuan_ppk) {
+                // KASUS 2: Kasubbag adalah pemeriksa pertama untuk SPT. Diteruskan ke PPK yang sudah dipilih
+                $ppkLabel = $surat->tujuan_ppk_label ?? 'PPK Terkait';
+                $statusBaru = SuratKeluar::STATUS_MENUNGGU_PPK;
+                $namaAksi = 'Diparaf ' . $kasubbagLabel . ' dan menunggu paraf ' . $ppkLabel;
+                $catatan = 'Dokumen SPT telah diverifikasi awal oleh ' . $kasubbagLabel . '. Diteruskan ke ' . $ppkLabel . '.' . ($komentarPersetujuan ? ' Catatan: ' . $komentarPersetujuan : '');
+                $pesan = 'Dokumen SPT berhasil diverifikasi awal oleh Kasubbag dan diteruskan ke ' . $ppkLabel . '!';
             } else {
                 $isKabagFinal = ($targetPenandatangan === 'kabag');
                 $targetWord = $isKabagFinal ? 'tanda tangan ' : 'paraf ';
@@ -448,6 +700,11 @@ class SuratKeluarController extends Controller
         $surat = SuratKeluar::findOrFail($id);
         $user = Auth::user();
 
+        // Super Admin tidak diizinkan mengedit dokumen surat rahasia
+        if ($surat->isRahasia() && in_array($user->role, ['super_admin', 'superadmin'])) {
+            return back()->with('error', 'Akses Ditolak! Super Admin tidak diizinkan mengedit dokumen surat rahasia.');
+        }
+
         // Validasi hak akses edit Penyusun sesuai aturan:
         // Dapat diedit jika belum diparaf oleh pemeriksa level pertama ATAU berstatus revisi
         if (!$surat->canPenyusunEdit($user->id)) {
@@ -478,10 +735,18 @@ class SuratKeluarController extends Controller
             $surat->tujuan_kasubbag = $request->tujuan_kasubbag;
         }
 
+        if ($request->filled('tujuan_rahasia_role')) {
+            $surat->tujuan_rahasia_role = $request->tujuan_rahasia_role;
+        }
+
         // Tentukan kembali ke pemeriksa awal surat
         $targetPertamaLabel = '';
         $isTargetFinal = false;
-        if ($surat->tujuan_unit) {
+        if ($surat->isRahasia()) {
+            $surat->status = SuratKeluar::STATUS_MENUNGGU_RAHASIA;
+            $targetPertamaLabel = $surat->tujuan_rahasia_label ?? 'Pejabat Terkait';
+            $isTargetFinal = false;
+        } elseif ($surat->tujuan_unit) {
             $surat->status = SuratKeluar::STATUS_MENUNGGU_UNIT;
             $targetPertamaLabel = $surat->tujuan_unit_label ?? 'Unit/Prodi/Lab';
             $isTargetFinal = ($surat->tujuan_penandatangan === 'unit');
@@ -521,9 +786,15 @@ class SuratKeluarController extends Controller
     {
         $surat = SuratKeluar::with('jenisSurat')->findOrFail($id);
         $user = Auth::user();
+        $isSuperAdmin = $user && in_array($user->role, ['super_admin', 'superadmin']);
 
-        // Pencegahan IDOR: Hanya pihak yang berwenang yang dapat melihat riwayat dan berkas surat
-        if (!$this->canUserViewSurat($user, $surat)) {
+        // Super Admin dapat melihat riwayat tracking semua surat (termasuk surat rahasia).
+        // Non-superadmin harus memiliki izin akses rahasia jika surat berstatus rahasia.
+        if ($surat->isRahasia()) {
+            if (!$isSuperAdmin && !$surat->canUserAccessRahasia($user)) {
+                abort(403, 'Akses Ditolak! Anda tidak memiliki izin untuk melihat riwayat surat rahasia ini.');
+            }
+        } elseif (!$this->canUserViewSurat($user, $surat)) {
             abort(403, 'Akses Ditolak! Anda tidak memiliki izin untuk melihat detail atau riwayat dokumen surat ini.');
         }
         
@@ -687,6 +958,11 @@ class SuratKeluarController extends Controller
             return back()->with('error', 'Akses Ditolak! Hanya akun pengunggah dokumen atau Sekretaris Direktur yang dapat mengubah data arsip.');
         }
 
+        // Super Admin tidak diizinkan mengedit nomor surat atau berkas dokumen rahasia
+        if ($surat->isRahasia() && $isSuperAdmin) {
+            return back()->with('error', 'Akses Ditolak! Super Admin tidak diizinkan mengubah dokumen surat rahasia.');
+        }
+
         $request->validate([
             'nomor_surat' => 'required|string|max:100',
             'file_final' => 'nullable|mimes:pdf|max:5120',
@@ -701,8 +977,11 @@ class SuratKeluarController extends Controller
         $nomorLama = $surat->nomor_surat;
         $berkasDiganti = false;
 
-        // Penggantian file PDF hanya boleh oleh akun pengunggah atau Super Admin
+        // Penggantian file PDF hanya boleh oleh akun pengunggah atau Super Admin (khusus surat rahasia, Super Admin dilarang)
         if ($request->hasFile('file_final')) {
+            if ($surat->isRahasia() && $isSuperAdmin) {
+                return back()->with('error', 'Akses Ditolak! Super Admin tidak memiliki izin untuk mengunggah atau mengganti berkas surat rahasia.');
+            }
             if (!$isPengunggah && !$isSuperAdmin) {
                 return back()->with('error', 'Akses Ditolak! Penggantian berkas PDF dokumen hanya dapat dilakukan oleh akun yang melakukan pengarsipan/upload.');
             }
@@ -775,17 +1054,51 @@ class SuratKeluarController extends Controller
         return back()->with('error', 'Gagal! Dokumen surat yang telah selesai atau diarsipkan tidak dapat ditarik kembali.');
     }
 
+    // Fungsi bagi Penyusun untuk membatalkan proses surat melalui aksi tabel
+    public function batalkan($id)
+    {
+        $surat = SuratKeluar::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$surat->canPenyusunBatalkan($user->id)) {
+            return back()->with('error', 'Akses Ditolak! Dokumen surat ini tidak dapat dibatalkan (sudah selesai, diarsipkan, atau sedang menunggu upload final).');
+        }
+
+        $catatanBatal = 'Mohon maaf Bpk/Ibu suratnya saya batalkan prosesnya';
+
+        $surat->status = SuratKeluar::STATUS_DIBATALKAN;
+        $surat->catatan_terakhir = $catatanBatal;
+        $surat->save();
+
+        TrackingSurat::create([
+            'surat_keluar_id' => $surat->id,
+            'aktor_id' => $user->id,
+            'aksi' => 'Dibatalkan oleh Penyusun',
+            'catatan' => $catatanBatal,
+        ]);
+
+        return back()->with('success', 'Dokumen surat berhasil dibatalkan. Seluruh alur proses telah dihentikan.');
+    }
+
     /**
-     * Memeriksa otorisasi apakah pengguna berhak melihat detail dan riwayat surat (Mencegah IDOR)
+     * Memeriksa otorisasi apakah pengguna berhak melihat detail dan riwayat berkas surat (Mencegah IDOR)
      */
     protected function canUserViewSurat(?User $user, SuratKeluar $surat): bool
     {
-        // Setiap pengguna terautentikasi dalam sistem internal kampus berhak melihat dokumen surat
-        if ($user) {
-            return true;
+        if (!$user) {
+            return false;
         }
 
-        return false;
+        // Dokumen surat rahasia tertutup dan Superadmin DILARANG melihat isi/berkas dokumen surat rahasia
+        if ($surat->isRahasia()) {
+            if (in_array($user->role, ['super_admin', 'superadmin'])) {
+                return false;
+            }
+            return $surat->canUserAccessRahasia($user);
+        }
+
+        // Setiap pengguna terautentikasi dalam sistem internal kampus berhak melihat dokumen surat umum
+        return true;
     }
 
     /**
@@ -795,15 +1108,23 @@ class SuratKeluarController extends Controller
     {
         // 1. Jika sudah dalam status menunggu upload berkas final atau selesai ttd
         if (in_array($surat->status, [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'])) {
+            if ($surat->isRahasia() && in_array($user->role, ['super_admin', 'superadmin'])) {
+                return false;
+            }
             return true;
         }
 
-        // 2. Jika Super Admin, selalu diizinkan
+        // 2. Jika Super Admin, selalu diizinkan (kecuali surat rahasia)
         if (in_array($user->role, ['super_admin', 'superadmin'])) {
-            return true;
+            return !$surat->isRahasia();
         }
 
-        // 3. Cek apakah surat saat ini sedang menunggu tindakan dari penandatangan final
+        // 3. Khusus surat rahasia
+        if ($surat->isRahasia()) {
+            return ($surat->status === SuratKeluar::STATUS_MENUNGGU_FINAL) && ($surat->tujuan_rahasia_role === $user->role || $surat->pembuat_id === $user->id);
+        }
+
+        // 4. Cek apakah surat saat ini sedang menunggu tindakan dari penandatangan final
         $penandatangan = $surat->tujuan_penandatangan ?? 'direktur';
 
         if ($penandatangan === 'direktur') {
@@ -842,6 +1163,14 @@ class SuratKeluarController extends Controller
      */
     protected function canUserUploadFinal(User $user, SuratKeluar $surat): bool
     {
+        // Khusus surat rahasia: Super Admin TIDAK DAPAT mengunggah berkas final
+        if ($surat->isRahasia()) {
+            if (in_array($user->role, ['super_admin', 'superadmin'])) {
+                return false;
+            }
+            return ($surat->tujuan_rahasia_role === $user->role || $surat->pembuat_id === $user->id);
+        }
+
         if (in_array($user->role, ['super_admin', 'superadmin'])) {
             return true;
         }

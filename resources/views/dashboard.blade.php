@@ -130,6 +130,57 @@
             transform: translate(2px, 2px) !important;
             box-shadow: 1px 1px 0px 0px #9F1239 !important;
         }
+
+        .card-radio-ditolak-active {
+            background-color: #FFF1F2 !important;
+            border: 2px solid #BE123C !important;
+            box-shadow: 3px 3px 0px 0px #BE123C !important;
+            border-radius: 1rem !important;
+        }
+
+        .btn-modal-ditolak {
+            background-color: #BE123C !important;
+            color: #FFFFFF !important;
+            border: 2px solid #881337 !important;
+            box-shadow: 3px 3px 0px 0px #881337 !important;
+            font-weight: 800 !important;
+            border-radius: 0.875rem !important;
+            transition: all 0.1s ease !important;
+        }
+        .btn-modal-ditolak:hover {
+            transform: translate(-1.5px, -1.5px) !important;
+            box-shadow: 4.5px 4.5px 0px 0px #881337 !important;
+            background-color: #9F1239 !important;
+        }
+        .btn-modal-ditolak:active {
+            transform: translate(2px, 2px) !important;
+            box-shadow: 1px 1px 0px 0px #881337 !important;
+        }
+
+        .btn-aksi-rose,
+        .btn-aksi-batal {
+            background-color: #EC4899 !important;
+            color: #FFFFFF !important;
+            border: 2px solid #9D174D !important;
+            box-shadow: 2.5px 2.5px 0px 0px #9D174D !important;
+            font-weight: 800 !important;
+            border-radius: 0.75rem !important;
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            cursor: pointer !important;
+        }
+        .btn-aksi-rose:hover,
+        .btn-aksi-batal:hover {
+            background-color: #DB2777 !important;
+            color: #FFFFFF !important;
+            transform: translate(-1.5px, -1.5px) !important;
+            box-shadow: 3.5px 3.5px 0px 0px #9D174D !important;
+        }
+        .btn-aksi-rose:active,
+        .btn-aksi-batal:active {
+            transform: translate(2px, 2px) !important;
+            box-shadow: 0px 0px 0px 0px #9D174D !important;
+            color: #FFFFFF !important;
+        }
     </style>
 
         <script>
@@ -242,6 +293,10 @@
                 infoFinalUrl: '',
                 infoTrackUrl: '',
                 infoTrackingsJson: '[]',
+                infoIsRahasia: false,
+                infoIsSpt: false,
+                infoPpk: '',
+                infoRahasiaTujuan: '',
                 openInfoModalFromElement(el) {
                     this.infoId = el.dataset.id || null;
                     this.infoJudul = el.dataset.judul || '';
@@ -263,6 +318,10 @@
                     this.infoFinalUrl = el.dataset.final || '';
                     this.infoTrackUrl = el.dataset.trackUrl || '';
                     this.infoTrackingsJson = el.dataset.trackings || '[]';
+                    this.infoIsRahasia = el.dataset.isRahasia === '1';
+                    this.infoIsSpt = el.dataset.isSpt === '1';
+                    this.infoPpk = el.dataset.ppk || '-';
+                    this.infoRahasiaTujuan = el.dataset.rahasiaTujuan || '-';
                     this.showInfoModal = true;
                 },
                 closeInfoModal() {
@@ -287,6 +346,10 @@
                     this.infoFinalUrl = '';
                     this.infoTrackUrl = '';
                     this.infoTrackingsJson = '[]';
+                    this.infoIsRahasia = false;
+                    this.infoIsSpt = false;
+                    this.infoPpk = '';
+                    this.infoRahasiaTujuan = '';
                 },
                 openTrackingFromInfo() {
                     const trackingsData = this.infoTrackingsJson;
@@ -326,10 +389,24 @@
                 },
                 isItemDikembalikan(item) {
                     const aksi = (item && item.aksi) ? item.aksi.toUpperCase() : '';
-                    return aksi.includes('DIKEMBALIKAN') || aksi.includes('PERLU REVISI') || aksi.includes('BALIK DULU') || aksi.includes('REVISI');
+                    return aksi.includes('DIKEMBALIKAN') || aksi.includes('PERLU REVISI') || aksi.includes('BALIK DULU') || aksi.includes('REVISI') || aksi.includes('TOLAK') || aksi.includes('BATAL');
                 },
                 isStatusDikembalikan(status) {
                     return (status || '').toUpperCase().includes('DIKEMBALIKAN');
+                },
+                isItemDitolak(item) {
+                    const aksi = (item && item.aksi) ? item.aksi.toUpperCase() : '';
+                    return aksi.includes('DITOLAK') || aksi.includes('TOLAK');
+                },
+                isStatusDitolak(status) {
+                    return (status || '').toUpperCase().includes('DITOLAK');
+                },
+                isItemDibatalkan(item) {
+                    const aksi = (item && item.aksi) ? item.aksi.toUpperCase() : '';
+                    return aksi.includes('DIBATALKAN') || aksi.includes('BATAL') || aksi.includes('BATALKAN PROSESNYA');
+                },
+                isStatusDibatalkan(status) {
+                    return (status || '').toUpperCase().includes('DIBATALKAN');
                 },
                 getLatestRevisiCatatan() {
                     if (!this.trackingList || this.trackingList.length === 0) return '';
@@ -357,10 +434,16 @@
                 tinjauKeputusan: 'teruskan',
                 tinjauTujuanWadir: '',
                 tinjauTujuanKasubbag: '',
+                tinjauTujuanUnit: '',
+                tinjauTujuanPpk: '',
+                tinjauTujuanRahasiaRole: '',
+                tinjauIsSpt: false,
+                tinjauIsRahasia: false,
+                tinjauIsRahasiaFinal: '0',
                 tinjauKomentar: '',
                 tinjauIsFinalSigner: false,
                 tinjauPenandatanganLabel: '',
-                openTinjauModal(id, judul, actionUrl, role, kembaliTarget, draftUrl, catatanRevisi = '', lampiranRevisi = '', opsiKembali = [], defaultWadir = '', isFinalSigner = false, penandatanganLabel = '', defaultKasubbag = '', draftType = 'pdf') {
+                openTinjauModal(id, judul, actionUrl, role, kembaliTarget, draftUrl, catatanRevisi = '', lampiranRevisi = '', opsiKembali = [], defaultWadir = '', isFinalSigner = false, penandatanganLabel = '', defaultKasubbag = '', draftType = 'pdf', isSpt = false, isRahasia = false, defaultPpk = '', defaultRahasiaRole = '', defaultUnit = '') {
                     this.tinjauSuratId = id;
                     this.tinjauJudul = judul;
                     this.tinjauActionUrl = actionUrl;
@@ -375,6 +458,12 @@
                     this.tinjauKeputusan = 'teruskan';
                     this.tinjauTujuanWadir = defaultWadir || '';
                     this.tinjauTujuanKasubbag = defaultKasubbag || '';
+                    this.tinjauTujuanUnit = defaultUnit || '';
+                    this.tinjauTujuanPpk = defaultPpk || '';
+                    this.tinjauTujuanRahasiaRole = defaultRahasiaRole || '';
+                    this.tinjauIsSpt = !!isSpt;
+                    this.tinjauIsRahasia = !!isRahasia;
+                    this.tinjauIsRahasiaFinal = '0';
                     this.tinjauKomentar = '';
                     this.tinjauIsFinalSigner = !!isFinalSigner;
                     this.tinjauPenandatanganLabel = penandatanganLabel || '';
@@ -401,7 +490,12 @@
                         el.dataset.isFinalSigner === '1',
                         el.dataset.penandatanganLabel || '',
                         el.dataset.tujuanKasubbag || '',
-                        el.dataset.draftType || 'pdf'
+                        el.dataset.draftType || 'pdf',
+                        el.dataset.isSpt === '1',
+                        el.dataset.isRahasia === '1',
+                        el.dataset.tujuanPpk || '',
+                        el.dataset.tujuanRahasiaRole || '',
+                        el.dataset.tujuanUnit || ''
                     );
                 },
                 closeTinjauModal() {
@@ -420,6 +514,12 @@
                     this.tinjauKeputusan = 'teruskan';
                     this.tinjauTujuanWadir = '';
                     this.tinjauTujuanKasubbag = '';
+                    this.tinjauTujuanUnit = '';
+                    this.tinjauTujuanPpk = '';
+                    this.tinjauTujuanRahasiaRole = '';
+                    this.tinjauIsSpt = false;
+                    this.tinjauIsRahasia = false;
+                    this.tinjauIsRahasiaFinal = '0';
                     this.tinjauKomentar = '';
                     this.tinjauIsFinalSigner = false;
                     this.tinjauPenandatanganLabel = '';
@@ -969,8 +1069,10 @@
                                     $isPengunggah = ($surat->pengunggah_final_id && $surat->pengunggah_final_id === Auth::id());
                                     $isSekdir = ($uRole === 'sekretaris_direktur');
                                     $isSuperAdmin = in_array($uRole, ['super_admin', 'superadmin']);
-                                    $canEditArsip = $isArchivedOrFinal && ($isPengunggah || $isSekdir || $isSuperAdmin);
-                                    $canChangeFinalFile = ($isPengunggah || $isSuperAdmin);
+                                    $canEditArsip = $isArchivedOrFinal && ($isPengunggah || $isSekdir || ($isSuperAdmin && !$surat->isRahasia()));
+                                    $canChangeFinalFile = ($isPengunggah || ($isSuperAdmin && !$surat->isRahasia()));
+                                    $canChangeFileThisSurat = $canChangeFinalFile && !($surat->isRahasia() && $isSuperAdmin);
+                                    $fileFinalPreviewUrl = ($surat->file_final && !($surat->isRahasia() && $isSuperAdmin)) ? asset('storage/' . $surat->file_final) : '';
                                 @endphp
                                 <tr>
                                     <!-- 1. Nomor Surat -->
@@ -987,13 +1089,13 @@
                                                                 {{ $surat->id }}, 
                                                                 '{{ addslashes($surat->judul) }}', 
                                                                 '{{ addslashes($surat->nomor_surat ?? '') }}', 
-                                                                {{ $canChangeFinalFile ? 'true' : 'false' }}, 
+                                                                {{ $canChangeFileThisSurat ? 'true' : 'false' }}, 
                                                                 '{{ addslashes($surat->pengunggahFinal->name ?? 'Pengunggah') }}', 
                                                                 '{{ addslashes($surat->tujuan_penandatangan_label) }}', 
-                                                                '{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}'
+                                                                '{{ $fileFinalPreviewUrl }}'
                                                             )"
                                                             class="p-1 text-[#003366] hover:text-[#002244] bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition cursor-pointer"
-                                                            title="{{ $canChangeFinalFile ? 'Edit Berkas Final & Nomor Surat' : 'Edit Nomor Surat' }}">
+                                                            title="{{ $canChangeFileThisSurat ? 'Edit Berkas Final & Nomor Surat' : 'Edit Nomor Surat' }}">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                                     </button>
                                                 @endif
@@ -1009,10 +1111,10 @@
                                                                 {{ $surat->id }}, 
                                                                 '{{ addslashes($surat->judul) }}', 
                                                                 '', 
-                                                                {{ $canChangeFinalFile ? 'true' : 'false' }}, 
+                                                                {{ $canChangeFileThisSurat ? 'true' : 'false' }}, 
                                                                 '{{ addslashes($surat->pengunggahFinal->name ?? 'Pengunggah') }}', 
                                                                 '{{ addslashes($surat->tujuan_penandatangan_label) }}', 
-                                                                '{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}'
+                                                                '{{ $fileFinalPreviewUrl }}'
                                                             )"
                                                             class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold bg-[#F5B800] text-[#002244] border border-[#002244] hover:bg-amber-400 transition cursor-pointer"
                                                             title="Beri Nomor Surat">
@@ -1023,52 +1125,9 @@
                                         @endif
                                     </td>
 
-                                    <!-- 2. Judul Surat & Info Alur Cepat -->
+                                    <!-- 2. Judul Surat -->
                                     <td class="px-6 py-4">
                                         <div class="font-bold text-slate-900 text-sm leading-snug">{{ $surat->judul }}</div>
-                                        <div class="flex flex-wrap items-center gap-2 mt-2">
-                                            @if($surat->jenisSurat)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-bold bg-blue-100 text-[#003366] border border-blue-300">
-                                                    📑 {{ $surat->jenisSurat->nama }}
-                                                </span>
-                                            @endif
-
-                                            <!-- Tombol Popup Informasi Surat & Alur Disposisi -->
-                                            <button type="button" 
-                                                    data-id="{{ $surat->id }}"
-                                                    data-nomor="{{ $surat->nomor_surat ?? '' }}"
-                                                    data-judul="{{ $surat->judul }}"
-                                                    data-jenis="{{ $surat->jenisSurat->nama ?? '-' }}"
-                                                    data-pembuat="{{ $surat->pembuat->name ?? '-' }}{{ isset($surat->pembuat->role_label) ? ' (' . $surat->pembuat->role_label . ')' : '' }}"
-                                                    data-tanggal="{{ $surat->created_at->translatedFormat('d F Y, H:i') }} WIB"
-                                                    data-unit="{{ $surat->tujuan_unit_label ?? '-' }}"
-                                                    data-kasubbag="{{ $surat->tujuan_kasubbag_label ?? '-' }}"
-                                                    data-wadir="{{ $surat->tujuan_wadir_label ?? '-' }}"
-                                                    data-penandatangan="{{ $surat->tujuan_penandatangan_label ?? '-' }}"
-                                                    data-ditandatangani-oleh="{{ ($surat->tujuan_penandatangan !== 'direktur' && in_array($surat->status, [\App\Models\SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD', 'DIARSIPKAN'])) ? $surat->tujuan_penandatangan_label : '' }}"
-                                                    data-pengunggah-arsip="{{ $surat->pengunggahFinal ? ($surat->pengunggahFinal->name . ' (' . $surat->pengunggahFinal->role_label . ')') : '' }}"
-                                                    data-status="{{ $surat->status_label }}"
-                                                    data-status-raw="{{ $surat->status }}"
-                                                    data-status-badge="{{ $surat->status_badge_class }}"
-                                                    data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
-                                                    data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
-                                                    data-final="{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}"
-                                                    data-track-url="{{ route('surat.track', $surat->id) }}"
-                                                    data-trackings="{{ json_encode($surat->trackings->values()->map(fn($t, $idx) => [
-                                                        'id' => $t->id,
-                                                        'waktu' => $t->created_at->translatedFormat('d M Y - H:i') . ' WIB',
-                                                        'aksi' => $surat->formatTrackingAksi($t, $idx === $surat->trackings->count() - 1),
-                                                        'aktor' => $t->aktor->name ?? 'User',
-                                                        'role' => strtoupper($t->aktor->role ?? '-'),
-                                                        'catatan' => $t->catatan,
-                                                        'file_lampiran' => $t->file_lampiran ? asset('storage/' . $t->file_lampiran) : null
-                                                    ])) }}"
-                                                    @click="openInfoModalFromElement($el)"
-                                                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 hover:bg-amber-200 text-[#002244] border border-amber-300 transition cursor-pointer shadow-xs"
-                                                    title="Lihat rincian tujuan alur, penandatangan, dan pengarsipan">
-                                                <span>ℹ️</span> Info Alur Surat
-                                            </button>
-                                        </div>
                                     </td>
                                     <td class="px-6 py-4 text-xs font-semibold text-slate-700">{{ $surat->pembuat->name ?? 'Tidak diketahui' }}</td>
                                     
@@ -1087,11 +1146,6 @@
                                             </p>
                                         </div>
 
-                                        @if($surat->catatan_terakhir && !str_starts_with($surat->status, 'DIKEMBALIKAN_KE_'))
-                                            <div class="mt-2 text-xs text-rose-950 bg-rose-50 p-2 rounded-xl border-2 border-rose-300 max-w-xs shadow-xs" title="Catatan Terakhir">
-                                                <span class="font-bold text-rose-700">💬 Catatan:</span> {{ $surat->catatan_terakhir }}
-                                            </div>
-                                        @endif
                                         @if($surat->lampiran_revisi_terakhir)
                                             <div class="mt-1.5">
                                                 <a href="{{ asset('storage/' . $surat->lampiran_revisi_terakhir) }}" target="_blank" download class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 hover:text-rose-950 bg-rose-100 hover:bg-rose-200 border-2 border-rose-400 px-2.5 py-1 rounded-xl shadow-xs transition">
@@ -1116,7 +1170,23 @@
                                             $isFinalSignerThisStep = false;
                                             $targetTtd = $surat->tujuan_penandatangan ?? 'direktur';
 
-                                            if (\App\Models\User::isPemeriksaUnit($uRole)) {
+                                            if ($surat->isRahasia()) {
+                                                if ($surat->status === \App\Models\SuratKeluar::STATUS_MENUNGGU_RAHASIA && ($surat->tujuan_rahasia_role === $uRole)) {
+                                                    $canReview = true;
+                                                    $reviewRoleType = 'rahasia';
+                                                    $reviewKembaliTarget = 'Penyusun (' . ($surat->pembuat->name ?? 'Pembuat') . ')';
+                                                    $reviewBtnLabel = 'Tinjau Surat Rahasia';
+                                                    $reviewBtnIcon = '🔒';
+                                                }
+                                            } elseif (\App\Models\User::isPpk($uRole)) {
+                                                if (in_array($surat->status, [\App\Models\SuratKeluar::STATUS_MENUNGGU_PPK, \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PPK]) && (!$surat->tujuan_ppk || $surat->tujuan_ppk === $uRole)) {
+                                                    $canReview = true;
+                                                    $reviewRoleType = 'ppk';
+                                                    $reviewKembaliTarget = $surat->tujuan_unit_label ?? 'Pemeriksa Pertama';
+                                                    $reviewBtnLabel = 'Verifikasi & Paraf PPK';
+                                                    $reviewBtnIcon = '💼';
+                                                }
+                                            } elseif (\App\Models\User::isPemeriksaUnit($uRole)) {
                                                 if (in_array($surat->status, [\App\Models\SuratKeluar::STATUS_MENUNGGU_UNIT, \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_UNIT]) && (!$surat->tujuan_unit || $surat->tujuan_unit === $uRole)) {
                                                     $canReview = true;
                                                     $reviewRoleType = 'unit';
@@ -1187,7 +1257,11 @@
                                             // Evaluasi apakah user saat ini berhak mengunggah berkas TTD final
                                             $canUploadFinal = false;
                                             if (in_array($surat->status, [\App\Models\SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'])) {
-                                                if (in_array($uRole, ['super_admin', 'superadmin'])) {
+                                                if ($surat->isRahasia()) {
+                                                    if ($surat->tujuan_rahasia_role === $uRole || $surat->pembuat_id === Auth::id()) {
+                                                        $canUploadFinal = true;
+                                                    }
+                                                } elseif (in_array($uRole, ['super_admin', 'superadmin'])) {
                                                     $canUploadFinal = true;
                                                 } elseif ($targetTtd === 'direktur' && $uRole === 'sekretaris_direktur') {
                                                     $canUploadFinal = true;
@@ -1204,6 +1278,7 @@
 
                                             $canPenyusunEdit = $surat->canPenyusunEdit(Auth::id());
                                             $canPenyusunDelete = $surat->canPenyusunDelete(Auth::id());
+                                            $canPenyusunBatalkan = $surat->canPenyusunBatalkan(Auth::id());
                                             $isSuperAdmin = in_array($uRole, ['super_admin', 'superadmin']);
                                             $isPenyusunRevisi = ($surat->status === \App\Models\SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN);
                                             $hasActionNeeded = $canReview || ($canPenyusunEdit && $isPenyusunRevisi) || $canUploadFinal;
@@ -1248,7 +1323,7 @@
                                                     </div>
 
                                                     <!-- 1. View Surat (Draft) -->
-                                                    @if($surat->file_draft)
+                                                    @if($surat->file_draft && !($surat->isRahasia() && $isSuperAdmin))
                                                         <button type="button" 
                                                                 data-url="{{ asset('storage/' . $surat->file_draft) }}"
                                                                 data-title="{{ $surat->judul }}"
@@ -1261,7 +1336,7 @@
                                                     @endif
 
                                                     <!-- 2. Download / View Final (Jika Sudah Diupload) -->
-                                                    @if($surat->file_final)
+                                                    @if($surat->file_final && !($surat->isRahasia() && $isSuperAdmin))
                                                         <button type="button" 
                                                                 data-url="{{ asset('storage/' . $surat->file_final) }}"
                                                                 data-title="{{ $surat->judul }} (Final)"
@@ -1283,7 +1358,7 @@
                                                                 'aktor' => $t->aktor->name ?? 'User',
                                                                 'role' => strtoupper($t->aktor->role ?? '-'),
                                                                 'catatan' => $t->catatan,
-                                                                'file_lampiran' => $t->file_lampiran ? asset('storage/' . $t->file_lampiran) : null
+                                                                'file_lampiran' => ($t->file_lampiran && !($surat->isRahasia() && $isSuperAdmin)) ? asset('storage/' . $t->file_lampiran) : null
                                                             ])) }}"
                                                             data-judul="{{ $surat->judul }}"
                                                             data-jenis="{{ $surat->jenisSurat->nama ?? '' }}"
@@ -1293,52 +1368,54 @@
                                                             data-status-raw="{{ $surat->status }}"
                                                             data-status-badge="{{ $surat->status_badge_class }}"
                                                             data-catatan-terakhir="{{ $surat->catatan_terakhir ?? '' }}"
-                                                            data-lampiran-terakhir="{{ $surat->lampiran_revisi_terakhir ? asset('storage/' . $surat->lampiran_revisi_terakhir) : '' }}"
+                                                            data-lampiran-terakhir="{{ ($surat->lampiran_revisi_terakhir && !($surat->isRahasia() && $isSuperAdmin)) ? asset('storage/' . $surat->lampiran_revisi_terakhir) : '' }}"
                                                             data-track-url="{{ route('surat.track', $surat->id) }}"
-                                                            data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
+                                                            data-draft="{{ ($surat->file_draft && !($surat->isRahasia() && $isSuperAdmin)) ? asset('storage/' . $surat->file_draft) : '' }}"
                                                             data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
-                                                            data-final="{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}"
+                                                            data-final="{{ ($surat->file_final && !($surat->isRahasia() && $isSuperAdmin)) ? asset('storage/' . $surat->file_final) : '' }}"
                                                             @click="open = false; openTrackingFromElement($el)"
                                                             class="flex items-center w-full px-3 py-2 btn-aksi-indigo font-cartoon font-bold text-xs rounded-xl transition text-left cursor-pointer"
                                                             title="Lihat Riwayat Perjalanan Surat">
                                                         <span class="mr-2">🔍</span> Tracking Surat
                                                     </button>
 
-                                                    <!-- 4. Informasi Surat (Popup Modal Rincian & Alur) -->
-                                                    <button type="button" 
-                                                            data-id="{{ $surat->id }}"
-                                                            data-nomor="{{ $surat->nomor_surat ?? '' }}"
-                                                            data-judul="{{ $surat->judul }}"
-                                                            data-jenis="{{ $surat->jenisSurat->nama ?? '-' }}"
-                                                            data-pembuat="{{ $surat->pembuat->name ?? '-' }}{{ isset($surat->pembuat->role_label) ? ' (' . $surat->pembuat->role_label . ')' : '' }}"
-                                                            data-tanggal="{{ $surat->created_at->translatedFormat('d F Y, H:i') }} WIB"
-                                                            data-unit="{{ $surat->tujuan_unit_label ?? '-' }}"
-                                                            data-kasubbag="{{ $surat->tujuan_kasubbag_label ?? '-' }}"
-                                                            data-wadir="{{ $surat->tujuan_wadir_label ?? '-' }}"
-                                                            data-penandatangan="{{ $surat->tujuan_penandatangan_label ?? '-' }}"
-                                                            data-ditandatangani-oleh="{{ ($surat->tujuan_penandatangan !== 'direktur' && in_array($surat->status, [\App\Models\SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD', 'DIARSIPKAN'])) ? $surat->tujuan_penandatangan_label : '' }}"
-                                                            data-pengunggah-arsip="{{ $surat->pengunggahFinal ? ($surat->pengunggahFinal->name . ' (' . $surat->pengunggahFinal->role_label . ')') : '' }}"
-                                                            data-status="{{ $surat->status_label }}"
-                                                            data-status-raw="{{ $surat->status }}"
-                                                            data-status-badge="{{ $surat->status_badge_class }}"
-                                                            data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
-                                                            data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
-                                                            data-final="{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}"
-                                                            data-track-url="{{ route('surat.track', $surat->id) }}"
-                                                            data-trackings="{{ json_encode($surat->trackings->values()->map(fn($t, $idx) => [
-                                                                'id' => $t->id,
-                                                                'waktu' => $t->created_at->translatedFormat('d M Y - H:i') . ' WIB',
-                                                                'aksi' => $surat->formatTrackingAksi($t, $idx === $surat->trackings->count() - 1),
-                                                                'aktor' => $t->aktor->name ?? 'User',
-                                                                'role' => strtoupper($t->aktor->role ?? '-'),
-                                                                'catatan' => $t->catatan,
-                                                                'file_lampiran' => $t->file_lampiran ? asset('storage/' . $t->file_lampiran) : null
-                                                            ])) }}"
-                                                            @click="openInfoModalFromElement($el); open = false;"
-                                                            class="flex items-center w-full px-3 py-2 btn-aksi-cyan font-cartoon font-bold text-xs rounded-xl transition text-left cursor-pointer"
-                                                            title="Lihat Rincian & Informasi Dokumen Surat">
-                                                        <span class="mr-2">ℹ️</span> Informasi Surat
-                                                    </button>
+                                                    <!-- 4. Informasi Surat (Popup Modal Rincian & Alur - Disembunyikan untuk Super Admin jika dokumen rahasia) -->
+                                                    @if(!($surat->isRahasia() && $isSuperAdmin))
+                                                        <button type="button" 
+                                                                data-id="{{ $surat->id }}"
+                                                                data-nomor="{{ $surat->nomor_surat ?? '' }}"
+                                                                data-judul="{{ $surat->judul }}"
+                                                                data-jenis="{{ $surat->jenisSurat->nama ?? '-' }}"
+                                                                data-pembuat="{{ $surat->pembuat->name ?? '-' }}{{ isset($surat->pembuat->role_label) ? ' (' . $surat->pembuat->role_label . ')' : '' }}"
+                                                                data-tanggal="{{ $surat->created_at->translatedFormat('d F Y, H:i') }} WIB"
+                                                                data-unit="{{ $surat->tujuan_unit_label ?? '-' }}"
+                                                                data-kasubbag="{{ $surat->tujuan_kasubbag_label ?? '-' }}"
+                                                                data-wadir="{{ $surat->tujuan_wadir_label ?? '-' }}"
+                                                                data-penandatangan="{{ $surat->tujuan_penandatangan_label ?? '-' }}"
+                                                                data-ditandatangani-oleh="{{ ($surat->tujuan_penandatangan !== 'direktur' && in_array($surat->status, [\App\Models\SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD', 'DIARSIPKAN'])) ? $surat->tujuan_penandatangan_label : '' }}"
+                                                                data-pengunggah-arsip="{{ $surat->pengunggahFinal ? ($surat->pengunggahFinal->name . ' (' . $surat->pengunggahFinal->role_label . ')') : '' }}"
+                                                                data-status="{{ $surat->status_label }}"
+                                                                data-status-raw="{{ $surat->status }}"
+                                                                data-status-badge="{{ $surat->status_badge_class }}"
+                                                                data-draft="{{ $surat->file_draft ? asset('storage/' . $surat->file_draft) : '' }}"
+                                                                data-draft-type="{{ strtolower(pathinfo($surat->file_draft, PATHINFO_EXTENSION)) }}"
+                                                                data-final="{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}"
+                                                                data-track-url="{{ route('surat.track', $surat->id) }}"
+                                                                data-trackings="{{ json_encode($surat->trackings->values()->map(fn($t, $idx) => [
+                                                                    'id' => $t->id,
+                                                                    'waktu' => $t->created_at->translatedFormat('d M Y - H:i') . ' WIB',
+                                                                    'aksi' => $surat->formatTrackingAksi($t, $idx === $surat->trackings->count() - 1),
+                                                                    'aktor' => $t->aktor->name ?? 'User',
+                                                                    'role' => strtoupper($t->aktor->role ?? '-'),
+                                                                    'catatan' => $t->catatan,
+                                                                    'file_lampiran' => $t->file_lampiran ? asset('storage/' . $t->file_lampiran) : null
+                                                                ])) }}"
+                                                                @click="openInfoModalFromElement($el); open = false;"
+                                                                class="flex items-center w-full px-3 py-2 btn-aksi-cyan font-cartoon font-bold text-xs rounded-xl transition text-left cursor-pointer"
+                                                                title="Lihat Rincian & Informasi Dokumen Surat">
+                                                            <span class="mr-2">ℹ️</span> Informasi Surat
+                                                        </button>
+                                                    @endif
 
                                                     <!-- 5. AKSI TINJAU / PARAF / TTD (Muncul Sesuai Hak Akses & Status Dokumen) -->
                                                     @if($canReview)
@@ -1357,6 +1434,11 @@
                                                                 data-opsi-kembali="{{ json_encode($surat->getOpsiPengembalian($uRole)) }}"
                                                                 data-tujuan-wadir="{{ $surat->tujuan_wadir ?? '' }}"
                                                                 data-tujuan-kasubbag="{{ $surat->tujuan_kasubbag ?? '' }}"
+                                                                data-tujuan-unit="{{ $surat->tujuan_unit ?? '' }}"
+                                                                data-is-spt="{{ $surat->isSpt() ? '1' : '0' }}"
+                                                                data-is-rahasia="{{ $surat->isRahasia() ? '1' : '0' }}"
+                                                                data-tujuan-ppk="{{ $surat->tujuan_ppk ?? '' }}"
+                                                                data-tujuan-rahasia-role="{{ $surat->tujuan_rahasia_role ?? '' }}"
                                                                 @click="open = false; openTinjauFromElement($el)"
                                                                 class="flex items-center w-full px-3 py-2 btn-menu-tinjau font-cartoon font-bold text-xs rounded-xl transition text-left cursor-pointer"
                                                                 title="{{ $reviewBtnLabel }}">
@@ -1395,25 +1477,40 @@
                                                     @endif
 
                                                     <!-- 8. AKSI EDIT BERKAS & NOMOR SURAT ARSIP -->
+                                                    @php
+                                                        $canChangeFileThisSurat = $canChangeFinalFile && !($surat->isRahasia() && $isSuperAdmin);
+                                                    @endphp
                                                     @if($canEditArsip)
                                                         <button type="button" 
                                                                 @click="open = false; openEditArsipModal(
                                                                     {{ $surat->id }}, 
                                                                     '{{ addslashes($surat->judul) }}', 
                                                                     '{{ addslashes($surat->nomor_surat ?? '') }}', 
-                                                                    {{ $canChangeFinalFile ? 'true' : 'false' }}, 
+                                                                    {{ $canChangeFileThisSurat ? 'true' : 'false' }}, 
                                                                     '{{ addslashes($surat->pengunggahFinal->name ?? 'Pengunggah') }}', 
                                                                     '{{ addslashes($surat->tujuan_penandatangan_label) }}', 
-                                                                    '{{ $surat->file_final ? asset('storage/' . $surat->file_final) : '' }}'
+                                                                    '{{ ($surat->file_final && !($surat->isRahasia() && $isSuperAdmin)) ? asset('storage/' . $surat->file_final) : '' }}'
                                                                 )"
                                                                 class="flex items-center w-full px-3 py-2 btn-aksi-amber font-cartoon font-bold text-xs rounded-xl transition text-left cursor-pointer"
-                                                                title="{{ $canChangeFinalFile ? 'Edit Berkas Final & Nomor Surat' : 'Berikan / Edit Nomor Surat' }}">
+                                                                title="{{ $canChangeFileThisSurat ? 'Edit Berkas Final & Nomor Surat' : 'Berikan / Edit Nomor Surat' }}">
                                                             <span class="mr-2">📝</span>
-                                                            <span>{{ $canChangeFinalFile ? 'Edit Berkas & No. Surat' : 'Edit / Berikan No. Surat' }}</span>
+                                                            <span>{{ $canChangeFileThisSurat ? 'Edit Berkas & No. Surat' : 'Edit / Berikan No. Surat' }}</span>
                                                         </button>
                                                     @endif
 
-                                                    <!-- 9. Hapus Surat (Super Admin & Penyusun jika belum final/arsip) -->
+                                                    <!-- 9. AKSI BATALKAN PROSES SURAT (Khusus Penyusun) -->
+                                                    @if($canPenyusunBatalkan)
+                                                        <form action="{{ route('surat.batalkan', $surat->id) }}" method="POST" class="w-full m-0 p-0" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan proses dokumen surat ini? Seluruh alur proses surat akan dihentikan.');">
+                                                            @csrf
+                                                            <button type="submit" 
+                                                                    class="flex items-center w-full px-3 py-2 btn-aksi-rose font-cartoon font-bold text-xs rounded-xl transition text-left cursor-pointer"
+                                                                    title="Batalkan Proses Surat">
+                                                                <span class="mr-2">🚫</span> Batalkan Surat
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
+                                                    <!-- 10. Hapus Surat (Super Admin & Penyusun jika belum final/arsip) -->
                                                     @if($isSuperAdmin || $canPenyusunDelete)
                                                         <form action="{{ route('surat.destroy', $surat->id) }}" method="POST" class="w-full m-0 p-0" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus dokumen surat ini?');">
                                                             @csrf
@@ -1673,6 +1770,68 @@
                         </div>
                     </template>
 
+                    <!-- Alert Highlight jika status surat Ditolak -->
+                    <template x-if="isStatusDitolak(trackingStatusRaw) || isStatusDitolak(trackingStatus)">
+                        <div class="mb-5 p-4 bg-rose-50 border-2 border-rose-500 rounded-2xl shadow-[3px_3px_0px_#be123c]">
+                            <div class="flex items-start gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-rose-200 border-2 border-rose-500 flex items-center justify-center text-rose-800 text-lg shrink-0">
+                                    ❌
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <h4 class="text-xs font-extrabold text-rose-900 uppercase tracking-wider">
+                                            Dokumen Surat Telah Ditolak
+                                        </h4>
+                                        <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-900 border border-rose-400" x-text="trackingStatus"></span>
+                                    </div>
+                                    <p class="text-xs text-rose-800 mt-0.5 font-medium">Dokumen ini telah ditolak oleh pemeriksa dan seluruh proses alur surat telah dihentikan secara permanen.</p>
+                                    
+                                    <template x-if="trackingCatatanTerakhir">
+                                        <div class="mt-2.5 p-3.5 bg-white border-2 border-rose-200 rounded-xl shadow-xs">
+                                            <span class="text-xs font-bold text-rose-800 flex items-center gap-1.5 mb-1">
+                                                <span>💬</span> Alasan Penolakan:
+                                            </span>
+                                            <p class="text-sm text-rose-950 font-semibold whitespace-pre-line leading-relaxed" x-text="trackingCatatanTerakhir"></p>
+                                        </div>
+                                    </template>
+                                    <template x-if="trackingLampiranTerakhir">
+                                        <div class="mt-2.5">
+                                            <a :href="trackingLampiranTerakhir" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-bold rounded-xl border-2 border-rose-300 transition shadow-sm">
+                                                <span>📎</span> Unduh Berkas Catatan Penolakan
+                                            </a>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Alert Highlight jika status surat Dibatalkan oleh Penyusun -->
+                    <template x-if="isStatusDibatalkan(trackingStatusRaw) || isStatusDibatalkan(trackingStatus)">
+                        <div class="mb-5 p-4 bg-slate-100 border-2 border-slate-400 rounded-2xl shadow-[3px_3px_0px_#64748b]">
+                            <div class="flex items-start gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-200 border-2 border-slate-400 flex items-center justify-center text-slate-700 text-lg shrink-0">
+                                    🚫
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                                            Proses Dokumen Dibatalkan
+                                        </h4>
+                                        <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-800 border border-slate-400" x-text="trackingStatus"></span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 mt-0.5 font-medium">Proses surat ini telah dibatalkan atas permintaan Penyusun (Pembuat Dokumen).</p>
+                                    <div class="mt-2.5 p-3.5 bg-white border-2 border-slate-200 rounded-xl shadow-xs">
+                                        <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-1">
+                                            <span>💬</span> Pesan Penyusun:
+                                        </span>
+                                        <p class="text-sm text-slate-900 font-semibold whitespace-pre-line leading-relaxed" x-text="trackingCatatanTerakhir || 'Mohon maaf Bpk/Ibu suratnya saya batalkan prosesnya'"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
                     <!-- Tombol Preview Cepat Jika Ada File -->
                     <div class="mb-6 flex flex-wrap gap-2.5" x-show="trackingDraft || trackingFinal">
                         <template x-if="trackingDraft">
@@ -1758,15 +1917,29 @@
                                             <!-- Badge Khusus Titik Posisi Saat Ini -->
                                             <template x-if="index === trackingList.length - 1">
                                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm"
-                                                      :class="isItemDikembalikan(item) ? 'bg-rose-200 text-rose-950 border border-rose-400' : 'bg-[#F5B800] text-[#002244] border border-[#002244]'">
-                                                    <span>📍 POSISI SAAT INI</span>
+                                                      :class="isItemDitolak(item) ? 'bg-rose-200 text-rose-950 border border-rose-500' : (isItemDibatalkan(item) ? 'bg-slate-200 text-slate-900 border border-slate-500' : (isItemDikembalikan(item) ? 'bg-rose-200 text-rose-950 border border-rose-400' : 'bg-[#F5B800] text-[#002244] border border-[#002244]'))">
+                                                    <span x-text="isItemDitolak(item) ? '❌ DOKUMEN DITOLAK' : (isItemDibatalkan(item) ? '🚫 PROSES DIBATALKAN' : '📍 POSISI SAAT INI')"></span>
                                                 </span>
                                             </template>
 
-                                            <!-- Badge Dikembalikan untuk Riwayat Lampau -->
-                                            <template x-if="isItemDikembalikan(item) && index < trackingList.length - 1">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
-                                                    ↩️ CATATAN REVISI
+                                            <!-- Badge Dikembalikan / Ditolak / Dibatalkan untuk Riwayat Lampau -->
+                                            <template x-if="index < trackingList.length - 1">
+                                                <span>
+                                                    <template x-if="isItemDitolak(item)">
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                                            ❌ DITOLAK
+                                                        </span>
+                                                    </template>
+                                                    <template x-if="isItemDibatalkan(item)">
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800 border border-slate-400">
+                                                            🚫 DIBATALKAN
+                                                        </span>
+                                                    </template>
+                                                    <template x-if="!isItemDitolak(item) && !isItemDibatalkan(item) && isItemDikembalikan(item)">
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                                            ↩️ CATATAN REVISI
+                                                        </span>
+                                                    </template>
                                                 </span>
                                             </template>
                                         </div>
@@ -1782,18 +1955,18 @@
                                     <!-- Catatan Log: Jika Dikembalikan / Revisi Diberi Desain Alert Merah Spesial -->
                                     <template x-if="item.catatan">
                                         <div>
-                                            <!-- Model Revisi / Dikembalikan -->
+                                            <!-- Model Revisi / Dikembalikan / Ditolak / Dibatalkan -->
                                             <template x-if="isItemDikembalikan(item)">
                                                 <div class="mt-2.5 p-3.5 bg-rose-50 border-2 border-rose-300 rounded-2xl shadow-[2px_2px_0px_#e11d48]">
                                                     <div class="flex items-center text-xs font-bold text-rose-900 uppercase tracking-wider mb-1.5">
                                                         <span class="text-sm mr-1.5">💬</span>
-                                                        <span>Catatan Revisi / Alasan Pengembalian:</span>
+                                                        <span x-text="isItemDitolak(item) ? 'Alasan Penolakan Dokumen:' : (isItemDibatalkan(item) ? 'Alasan Pembatalan Surat:' : 'Catatan Revisi / Alasan Pengembalian:')"></span>
                                                     </div>
                                                     <div class="p-2.5 bg-white border border-rose-200 rounded-xl text-sm text-rose-950 font-medium whitespace-pre-line leading-relaxed shadow-xs" x-text="item.catatan"></div>
                                                     <template x-if="item.file_lampiran">
                                                         <div class="mt-2.5 pt-2 border-t border-rose-200">
                                                             <a :href="item.file_lampiran" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-bold rounded-xl border-2 border-rose-300 transition shadow-sm">
-                                                                <span>📎</span> Unduh File Koreksi / Catatan Revisi
+                                                                <span x-text="isItemDitolak(item) ? '📎 Unduh Berkas Catatan Penolakan' : '📎 Unduh File Koreksi / Catatan Revisi'"></span>
                                                             </a>
                                                         </div>
                                                     </template>
@@ -1962,21 +2135,93 @@
                                     </template>
                                 </div>
                             </label>
+
+                            <!-- Opsi 3: Ditolak -->
+                            <label class="flex items-start p-3.5 border-2 rounded-2xl cursor-pointer transition select-none"
+                                   :class="tinjauKeputusan === 'ditolak' ? 'card-radio-ditolak-active' : 'border-slate-200 hover:border-slate-300 bg-white shadow-xs'">
+                                <input type="radio" name="keputusan" value="ditolak" x-model="tinjauKeputusan" class="mt-1 text-rose-700 focus:ring-0 border-2 border-slate-300">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-extrabold text-rose-800">❌ Ditolak / Berhenti Proses</span>
+                                    <span class="block text-xs text-rose-900 mt-0.5">
+                                        Dokumen surat ditolak dan seluruh alur proses dihentikan secara permanen.
+                                    </span>
+                                </div>
+                            </label>
                         </div>
                     </div>
 
                     <!-- KONTEN BILA KEPUTUSAN = TERUSKAN -->
                     <div x-show="tinjauKeputusan === 'teruskan'">
-                        <!-- Khusus Unit / Prodi / Lab (Jika bukan penandatangan final): Wajib Memilih Kasubbag Tujuan -->
-                        <div x-show="tinjauRole === 'unit' && !tinjauIsFinalSigner" class="mb-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-950">
+                        <!-- Khusus Surat Rahasia: Pilih Teruskan Bebas ke Pejabat Lain ATAU Tandatangani & Selesaikan -->
+                        <div x-show="tinjauIsRahasia" class="mb-4 p-4 bg-rose-50 border-2 border-rose-300 rounded-2xl text-rose-950">
+                            <label class="block text-xs font-bold text-rose-900 uppercase tracking-wider mb-2">
+                                🔒 Tindakan Surat Rahasia <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="space-y-2 mb-3">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-cartoon font-bold text-slate-800">
+                                    <input type="radio" name="is_final_sign" value="0" x-model="tinjauIsRahasiaFinal" class="text-rose-600 focus:ring-0">
+                                    <span>Teruskan Rahasia ke Pejabat Lain (Paraf Lanjutan)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-cartoon font-bold text-slate-800">
+                                    <input type="radio" name="is_final_sign" value="1" x-model="tinjauIsRahasiaFinal" class="text-emerald-600 focus:ring-0">
+                                    <span>Tandatangani & Selesaikan Surat Rahasia (Siap Unggah Berkas Final)</span>
+                                </label>
+                            </div>
+                            <div x-show="tinjauIsRahasiaFinal === '0' || !tinjauIsRahasiaFinal">
+                                <label for="pilih_tujuan_rahasia_modal" class="block text-xs font-bold text-rose-900 uppercase tracking-wider mb-1.5">
+                                    Pilih Pejabat Tujuan Berikutnya <span class="text-rose-500">*</span>
+                                </label>
+                                <select id="pilih_tujuan_rahasia_modal" 
+                                        name="tujuan_rahasia_role" 
+                                        x-model="tinjauTujuanRahasiaRole"
+                                        :disabled="tinjauKeputusan !== 'teruskan' || !tinjauIsRahasia || tinjauIsRahasiaFinal === '1'"
+                                        class="w-full text-xs font-cartoon font-bold border-2 border-rose-300 rounded-xl shadow-xs bg-white text-slate-900 p-2.5 focus:ring-0 focus:border-rose-500">
+                                    <option value="" disabled selected class="text-slate-400">-- Pilih Pejabat Penerima Surat Rahasia --</option>
+                                    @foreach($allGroupedRoles ?? \App\Models\User::getGroupedRoleLabels() as $groupName => $roles)
+                                        <optgroup label="{{ $groupName }}" class="font-bold text-[#003366] bg-slate-100">
+                                            @foreach($roles as $rKey => $rLabel)
+                                                <option value="{{ $rKey }}" class="text-slate-800 font-normal bg-white">{{ $rLabel }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                                <p class="text-[11px] text-rose-800 mt-1.5 font-medium">
+                                    Surat rahasia bersifat tertutup dan hanya dapat dibuka oleh pejabat yang Anda pilih di atas.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Khusus Unit / Prodi / Lab untuk Surat SPT: Wajib Memilih PPK Tujuan -->
+                        <div x-show="tinjauRole === 'unit' && tinjauIsSpt && !tinjauIsFinalSigner && !tinjauIsRahasia" class="mb-4 p-4 bg-amber-50 border-2 border-amber-400 rounded-2xl text-amber-950">
+                            <label for="pilih_tujuan_ppk_modal" class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1.5">
+                                Pilih PPK (Pejabat Pembuat Komitmen) yang Dituju <span class="text-rose-500">*</span>
+                            </label>
+                            <select id="pilih_tujuan_ppk_modal" 
+                                    name="tujuan_ppk" 
+                                    x-model="tinjauTujuanPpk"
+                                    :disabled="tinjauKeputusan !== 'teruskan' || tinjauRole !== 'unit' || !tinjauIsSpt || tinjauIsFinalSigner || tinjauIsRahasia"
+                                    :required="tinjauKeputusan === 'teruskan' && tinjauRole === 'unit' && tinjauIsSpt && !tinjauIsFinalSigner && !tinjauIsRahasia" 
+                                    class="w-full text-xs font-cartoon font-bold border-2 border-amber-300 rounded-xl shadow-xs bg-white text-slate-900 p-2.5 focus:ring-0 focus:border-amber-500">
+                                <option value="" disabled selected class="text-slate-400">-- Pilih PPK Penerima SPT --</option>
+                                @foreach($allPpkRoles ?? \App\Models\User::getPpkRoles() as $pKey => $pLabel)
+                                    <option value="{{ $pKey }}">{{ $pLabel }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-amber-800 mt-1.5 font-medium">
+                                💼 Sesuai SOP surat SPT: Setelah diperiksa unit, draf wajib diteruskan ke PPK sebelum ke Kasubbag.
+                            </p>
+                        </div>
+
+                        <!-- Khusus Unit / Prodi / Lab untuk Surat NON-SPT: Wajib Memilih Kasubbag Tujuan -->
+                        <div x-show="tinjauRole === 'unit' && !tinjauIsSpt && !tinjauIsFinalSigner && !tinjauIsRahasia" class="mb-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-950">
                             <label for="pilih_tujuan_kasubbag_modal" class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1.5">
                                 Pilih Kepala Subbagian (Kasubbag) yang Dituju <span class="text-rose-500">*</span>
                             </label>
                             <select id="pilih_tujuan_kasubbag_modal" 
                                     name="tujuan_kasubbag" 
                                     x-model="tinjauTujuanKasubbag"
-                                    :disabled="tinjauKeputusan !== 'teruskan' || tinjauRole !== 'unit' || tinjauIsFinalSigner"
-                                    :required="tinjauKeputusan === 'teruskan' && tinjauRole === 'unit' && !tinjauIsFinalSigner" 
+                                    :disabled="tinjauKeputusan !== 'teruskan' || tinjauRole !== 'unit' || tinjauIsSpt || tinjauIsFinalSigner || tinjauIsRahasia"
+                                    :required="tinjauKeputusan === 'teruskan' && tinjauRole === 'unit' && !tinjauIsSpt && !tinjauIsFinalSigner && !tinjauIsRahasia" 
                                     class="w-full text-xs font-cartoon font-bold border-2 border-amber-300 rounded-xl shadow-xs bg-white text-slate-900 p-2.5 focus:ring-0 focus:border-amber-500">
                                 <option value="" disabled selected class="text-slate-400">-- Pilih Kasubbag Pemeriksa Lanjutan --</option>
                                 @foreach(\App\Models\User::getKasubbagRoles() as $kRoleKey => $kRoleName)
@@ -1988,16 +2233,63 @@
                             </p>
                         </div>
 
+                        <!-- Khusus PPK (Kasus 3): Jika draf diawali dari Unit, PPK memilih Kasubbag tujuan -->
+                        <div x-show="tinjauRole === 'ppk' && tinjauTujuanUnit && !tinjauIsRahasia" class="mb-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-950">
+                            <label for="pilih_tujuan_kasubbag_ppk_modal" class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1.5">
+                                Pilih Kepala Subbagian (Kasubbag) yang Dituju <span class="text-rose-500">*</span>
+                            </label>
+                            <select id="pilih_tujuan_kasubbag_ppk_modal" 
+                                    name="tujuan_kasubbag" 
+                                    x-model="tinjauTujuanKasubbag"
+                                    :disabled="tinjauKeputusan !== 'teruskan' || tinjauRole !== 'ppk' || !tinjauTujuanUnit || tinjauIsRahasia"
+                                    :required="tinjauKeputusan === 'teruskan' && tinjauRole === 'ppk' && tinjauTujuanUnit && !tinjauIsRahasia" 
+                                    class="w-full text-xs font-cartoon font-bold border-2 border-amber-300 rounded-xl shadow-xs bg-white text-slate-900 p-2.5 focus:ring-0 focus:border-amber-500">
+                                <option value="" disabled selected class="text-slate-400">-- Pilih Kasubbag Pemeriksa Lanjutan --</option>
+                                @foreach(\App\Models\User::getKasubbagRoles() as $kRoleKey => $kRoleName)
+                                    <option value="{{ $kRoleKey }}">{{ $kRoleName }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-amber-800 mt-1.5 font-medium">
+                                💼 Dokumen SPT diawali dari Unit/Prodi/Lab. Silakan tentukan Kasubbag tujuan untuk pemeriksaan tata naskah lanjutan.
+                            </p>
+                        </div>
+
+                        <!-- Khusus PPK (Kasus 2): Jika draf diawali dari Kasubbag, setelah dari PPK langsung melanjutkan ke Kabag -->
+                        <div x-show="tinjauRole === 'ppk' && !tinjauTujuanUnit && !tinjauIsRahasia" class="mb-4 p-4 bg-sky-50 border-2 border-[#003366] rounded-2xl text-[#003366] shadow-[2px_2px_0px_#003366]">
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-xl">💼</span>
+                                <div>
+                                    <h5 class="text-xs font-bold uppercase tracking-wider text-[#003366]">Alur Lanjutan SPT ke Kabag</h5>
+                                    <p class="text-[11px] text-slate-700 mt-0.5 leading-relaxed font-medium">
+                                        Draf SPT ini diawali dari pemeriksaan Kasubbag. Setelah diverifikasi & disetujui PPK, dokumen akan <strong>langsung melanjutkan ke Kepala Bagian (Kabag)</strong> dan seterusnya tanpa memilih Kasubbag kembali.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Khusus Kasubbag (Kasus 2): Jika Kasubbag menjadi pemeriksa pertama pada SPT, mengalir ke PPK -->
+                        <div x-show="tinjauRole === 'kasubbag' && tinjauIsSpt && !tinjauTujuanUnit && !tinjauIsRahasia" class="mb-4 p-4 bg-amber-50 border-2 border-[#003366] rounded-2xl text-[#003366] shadow-[2px_2px_0px_#003366]">
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-xl">💼</span>
+                                <div>
+                                    <h5 class="text-xs font-bold uppercase tracking-wider text-[#003366]">Verifikasi Awal Kasubbag (SPT)</h5>
+                                    <p class="text-[11px] text-slate-700 mt-0.5 leading-relaxed font-medium">
+                                        Sebagai pemeriksa pertama dokumen SPT, setelah Anda setujui draf ini akan <strong>diteruskan ke Pejabat Pembuat Komitmen (PPK)</strong> yang telah ditentukan oleh Penyusun.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Khusus Sekretaris Kabag (Jika bukan penandatangan final): Wajib Memilih Sekretaris Wadir yang Dituju -->
-                        <div x-show="tinjauRole === 'sekretaris_kabag' && !tinjauIsFinalSigner" class="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-2xl text-blue-950">
+                        <div x-show="tinjauRole === 'sekretaris_kabag' && !tinjauIsFinalSigner && !tinjauIsRahasia" class="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-2xl text-blue-950">
                             <label for="pilih_tujuan_wadir_modal" class="block text-xs font-bold text-[#003366] uppercase tracking-wider mb-1.5">
                                 Pilih Sekretaris Wakil Direktur yang Dituju <span class="text-rose-500">*</span>
                             </label>
                             <select id="pilih_tujuan_wadir_modal" 
                                     name="tujuan_wadir" 
                                     x-model="tinjauTujuanWadir"
-                                    :disabled="tinjauKeputusan !== 'teruskan' || tinjauRole !== 'sekretaris_kabag' || tinjauIsFinalSigner"
-                                    :required="tinjauKeputusan === 'teruskan' && tinjauRole === 'sekretaris_kabag' && !tinjauIsFinalSigner" 
+                                    :disabled="tinjauKeputusan !== 'teruskan' || tinjauRole !== 'sekretaris_kabag' || tinjauIsFinalSigner || tinjauIsRahasia"
+                                    :required="tinjauKeputusan === 'teruskan' && tinjauRole === 'sekretaris_kabag' && !tinjauIsFinalSigner && !tinjauIsRahasia" 
                                     class="w-full text-xs font-cartoon font-bold border-2 border-blue-300 rounded-xl shadow-xs bg-white text-slate-900 p-2.5 focus:ring-0 focus:border-[#003366]">
                                 <option value="" disabled selected class="text-slate-400">-- Pilih Sekretaris Wakil Direktur --</option>
                                 @foreach(\App\Models\User::getSekretarisWadirRoles() as $wRoleKey => $wRoleName)
@@ -2091,6 +2383,41 @@
                         </div>
                     </div>
 
+                    <!-- KONTEN BILA KEPUTUSAN = DITOLAK -->
+                    <div x-show="tinjauKeputusan === 'ditolak'">
+                        <!-- Textarea Alasan Penolakan (Wajib Diisi) -->
+                        <div class="mb-3.5">
+                            <label for="komentar_ditolak" class="block text-xs font-bold text-rose-900 uppercase tracking-wider mb-1.5">
+                                Alasan Penolakan Dokumen <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea id="komentar_ditolak" 
+                                      name="komentar" 
+                                      x-model="tinjauKomentar" 
+                                      :disabled="tinjauKeputusan !== 'ditolak'"
+                                      :required="tinjauKeputusan === 'ditolak'" 
+                                      rows="3" 
+                                      placeholder="Tuliskan alasan lengkap penolakan dokumen surat ini..." 
+                                      class="w-full text-xs font-cartoon font-medium border-2 border-rose-300 rounded-xl shadow-xs bg-white text-slate-900 placeholder-slate-400 p-2.5 focus:ring-0 focus:border-rose-500"></textarea>
+                            <p class="text-[11px] text-rose-800 mt-1 font-medium">Alasan ini akan ditampilkan pada status dokumen dan tercatat permanen di riwayat tracking surat.</p>
+                        </div>
+
+                        <!-- Attach File Lampiran Catatan Penolakan (Opsional) -->
+                        <div class="mb-2 p-3.5 bg-white border-2 border-slate-200 rounded-2xl shadow-xs">
+                            <label for="lampiran_koreksi_ditolak" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                📎 Lampirkan File Catatan Penolakan (Opsional)
+                            </label>
+                            <input type="file" 
+                                   id="lampiran_koreksi_ditolak" 
+                                   name="file_lampiran" 
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                   :disabled="tinjauKeputusan !== 'ditolak'"
+                                   class="w-full text-xs text-slate-600 border-2 border-slate-300 rounded-xl p-2 bg-slate-50 file:mr-3 file:py-1 file:px-3 file:rounded-xl file:border-2 file:border-rose-300 file:text-xs file:font-bold file:bg-rose-100 file:text-rose-900 hover:file:bg-rose-200 transition cursor-pointer">
+                            <p class="text-[11px] text-slate-500 mt-1.5">
+                                Format: PDF, DOC, DOCX, JPG, JPEG, PNG (Maksimal 10MB). Unggah berkas jika ada catatan penolakan.
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- Footer Buttons -->
                     <div class="flex items-center justify-end gap-2.5 pt-4 mt-5 border-t-2 border-slate-200">
                         <button type="button" @click="closeTinjauModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border-2 border-slate-300 font-cartoon font-bold rounded-xl text-xs transition cursor-pointer">
@@ -2112,6 +2439,16 @@
                             <button type="submit" class="px-5 py-2.5 btn-modal-kembalikan text-white font-cartoon font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
                                 <span class="text-sm">↩️</span>
                                 <span>Kembalikan Dokumen Surat</span>
+                            </button>
+                        </template>
+
+                        <!-- Tombol Submit Ditolak -->
+                        <template x-if="tinjauKeputusan === 'ditolak'">
+                            <button type="submit" 
+                                    onclick="return confirm('Apakah Anda yakin ingin MENOLAK dokumen surat ini? Seluruh alur proses akan dihentikan secara permanen.');"
+                                    class="px-5 py-2.5 btn-modal-ditolak text-white font-cartoon font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                                <span class="text-sm">❌</span>
+                                <span>Tolak Dokumen Surat</span>
                             </button>
                         </template>
                     </div>
@@ -2757,29 +3094,53 @@
                             🛤️ Alur Disposisi & Pemeriksaan:
                         </span>
                         <div class="space-y-2">
-                            <!-- Unit / Prodi / Lab -->
-                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                                <span class="text-slate-600 flex items-center gap-1.5">
-                                    <span>🏢</span> Tingkat Unit / Prodi / Lab
-                                </span>
-                                <span class="font-bold" :class="infoUnit && infoUnit !== '-' ? 'text-emerald-700' : 'text-slate-400'" x-text="infoUnit && infoUnit !== '-' ? infoUnit : 'Langsung ke Kasubbag (Tanpa Unit)'"></span>
-                            </div>
+                            <!-- Khusus Surat Rahasia -->
+                            <template x-if="infoIsRahasia">
+                                <div class="flex items-center justify-between p-2.5 rounded-xl bg-rose-50 border-2 border-rose-300 text-xs">
+                                    <span class="text-rose-900 font-bold flex items-center gap-1.5">
+                                        <span>🔒</span> Dokumen Rahasia Tertutup
+                                    </span>
+                                    <span class="font-extrabold text-rose-950" x-text="'Ditujukan ke: ' + infoRahasiaTujuan"></span>
+                                </div>
+                            </template>
 
-                            <!-- Kasubbag -->
-                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                                <span class="text-slate-600 flex items-center gap-1.5">
-                                    <span>📌</span> Tingkat Kasubbag
-                                </span>
-                                <span class="font-bold text-amber-800" x-text="infoKasubbag"></span>
-                            </div>
+                            <template x-if="!infoIsRahasia">
+                                <div class="space-y-2">
+                                    <!-- Unit / Prodi / Lab -->
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                                        <span class="text-slate-600 flex items-center gap-1.5">
+                                            <span>🏢</span> Tingkat Unit / Prodi / Lab
+                                        </span>
+                                        <span class="font-bold" :class="infoUnit && infoUnit !== '-' ? 'text-emerald-700' : 'text-slate-400'" x-text="infoUnit && infoUnit !== '-' ? infoUnit : 'Langsung ke Kasubbag (Tanpa Unit)'"></span>
+                                    </div>
 
-                            <!-- Wadir -->
-                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                                <span class="text-slate-600 flex items-center gap-1.5">
-                                    <span>🎯</span> Tingkat Wakil Direktur
-                                </span>
-                                <span class="font-bold" :class="infoWadir && infoWadir !== '-' ? 'text-purple-700' : 'text-slate-400'" x-text="infoWadir && infoWadir !== '-' ? infoWadir : 'Bukan Alur Wadir'"></span>
-                            </div>
+                                    <!-- Khusus SPT: PPK -->
+                                    <template x-if="infoIsSpt">
+                                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 border-2 border-amber-300 text-xs">
+                                            <span class="text-amber-900 font-bold flex items-center gap-1.5">
+                                                <span>💼</span> Verifikasi PPK (SPT)
+                                            </span>
+                                            <span class="font-bold text-amber-950" x-text="infoPpk && infoPpk !== '-' ? infoPpk : 'Menunggu pemilihan PPK oleh Unit'"></span>
+                                        </div>
+                                    </template>
+
+                                    <!-- Kasubbag -->
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                                        <span class="text-slate-600 flex items-center gap-1.5">
+                                            <span>📌</span> Tingkat Kasubbag
+                                        </span>
+                                        <span class="font-bold text-amber-800" x-text="infoKasubbag"></span>
+                                    </div>
+
+                                    <!-- Wadir -->
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                                        <span class="text-slate-600 flex items-center gap-1.5">
+                                            <span>🎯</span> Tingkat Wakil Direktur
+                                        </span>
+                                        <span class="font-bold" :class="infoWadir && infoWadir !== '-' ? 'text-purple-700' : 'text-slate-400'" x-text="infoWadir && infoWadir !== '-' ? infoWadir : 'Bukan Alur Wadir'"></span>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
 

@@ -71,26 +71,8 @@
                 @endif
             </div>
 
-            <!-- Right Side: Live Clock & Profile Dropdown -->
+            <!-- Right Side: Profile Dropdown -->
             <div class="flex items-center space-x-2.5 sm:space-x-4">
-                
-                <!-- WIDGET JAM & TANGGAL DENGAN KEDIPAN HIJAU (PULSING GREEN DOT) -->
-                <div class="hidden md:flex items-center space-x-2 text-xs font-bold text-amber-300 bg-blue-950/60 border border-blue-400/40 px-3.5 py-1.5 rounded-full"
-                     x-data="{
-                         currentTime: '',
-                         updateTime() {
-                             const now = new Date();
-                             const options = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' };
-                             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
-                             this.currentTime = now.toLocaleDateString('id-ID', options) + ' • ' + timeStr;
-                         }
-                     }"
-                     x-init="updateTime(); setInterval(() => updateTime(), 30000)">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 -ml-4"></span>
-                    <span x-text="currentTime"></span>
-                </div>
-
                 <!-- Settings Dropdown -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">

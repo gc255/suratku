@@ -27,6 +27,16 @@
                     <h3 class="text-2xl sm:text-3xl font-cartoon font-bold text-[#003366] tracking-tight leading-snug">{{ $surat->judul }}</h3>
                     
                     <div class="flex flex-wrap items-center gap-2 mt-3">
+                        @if($surat->isRahasia())
+                            <span class="inline-flex items-center gap-1.5 font-bold text-xs text-rose-900 bg-rose-100 border-2 border-rose-500 shadow-xs px-3 py-1 rounded-xl">
+                                🔒 DOKUMEN RAHASIA
+                            </span>
+                        @endif
+                        @if($surat->isSpt())
+                            <span class="inline-flex items-center gap-1.5 font-bold text-xs text-amber-950 bg-amber-100 border-2 border-amber-500 shadow-xs px-3 py-1 rounded-xl">
+                                💼 SPT
+                            </span>
+                        @endif
                         @if($surat->nomor_surat)
                             <span class="inline-flex items-center gap-1.5 font-mono font-bold text-xs text-[#003366] bg-sky-50 border-2 border-[#003366] shadow-[2px_2px_0px_#003366] px-3 py-1 rounded-xl" title="Nomor Surat Resmi">
                                 📄 {{ $surat->nomor_surat }}
@@ -37,9 +47,19 @@
                                 📑 {{ $surat->jenisSurat->nama }}
                             </span>
                         @endif
+                        @if($surat->isRahasia() && $surat->tujuan_rahasia_label)
+                            <span class="inline-flex items-center gap-1 font-bold text-xs text-rose-800 bg-rose-50 border border-rose-300 px-3 py-1 rounded-xl" title="Tujuan Surat Rahasia">
+                                🎯 Ditujukan ke: {{ $surat->tujuan_rahasia_label }}
+                            </span>
+                        @endif
                         @if($surat->tujuan_unit)
                             <span class="inline-flex items-center gap-1 font-bold text-xs text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-xl" title="Pemeriksa Unit/Prodi/Lab yang dituju">
                                 🏢 {{ $surat->tujuan_unit_label }}
+                            </span>
+                        @endif
+                        @if($surat->tujuan_ppk)
+                            <span class="inline-flex items-center gap-1 font-bold text-xs text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-xl" title="PPK yang dituju">
+                                💼 {{ $surat->tujuan_ppk_label }}
                             </span>
                         @endif
                         @if($surat->tujuan_kasubbag)
@@ -52,12 +72,24 @@
                                 🎯 {{ $surat->tujuan_wadir_label }}
                             </span>
                         @endif
-                        @if($surat->tujuan_penandatangan)
+                        @if($surat->tujuan_penandatangan && !$surat->isRahasia())
                             <span class="inline-flex items-center gap-1 font-bold text-xs text-cyan-900 bg-cyan-100 border border-cyan-300 px-3 py-1 rounded-xl" title="Penandatangan Dokumen">
                                 ✍️ TTD: {{ $surat->tujuan_penandatangan_label }}
                             </span>
                         @endif
                     </div>
+
+                    @if($surat->isRahasia())
+                        <div class="mt-4 p-4 rounded-2xl bg-rose-50 border-2 border-rose-500 text-rose-950 shadow-[3px_3px_0px_#BE123C]">
+                            <div class="flex items-center gap-2 font-cartoon font-bold text-xs sm:text-sm text-rose-800">
+                                <span>🔒</span>
+                                <span>STATUS DOKUMEN RAHASIA (TERTUTUP)</span>
+                            </div>
+                            <p class="text-[11px] text-rose-900 mt-1 font-medium leading-relaxed">
+                                Dokumen ini berklasifikasi rahasia. Akses membaca detail dan berkas dibatasi khusus untuk pembuat draf dan pejabat yang dituju.
+                            </p>
+                        </div>
+                    @endif
 
                     <!-- MODEL 2 BALON KOMIK STATUS DI HALAMAN TRACKING -->
                     @php
@@ -76,18 +108,31 @@
                     </div>
 
                     <!-- Tombol Lihat Dokumen -->
-                    <div class="mt-5 flex flex-wrap gap-2.5">
-                        @if($surat->file_draft)
-                            <a href="{{ asset('storage/' . $surat->file_draft) }}" target="_blank" class="btn-pop-navy inline-flex items-center gap-2 text-xs font-cartoon py-2 px-4 rounded-xl transition">
-                                <span>👁️</span> Lihat File Draft (Awal)
-                            </a>
-                        @endif
-                        @if($surat->file_final)
-                            <a href="{{ asset('storage/' . $surat->file_final) }}" target="_blank" class="btn-pop-gold inline-flex items-center gap-2 text-xs font-cartoon py-2 px-4 rounded-xl transition">
-                                <span>📥</span> Unduh File Final (TTD)
-                            </a>
-                        @endif
-                    </div>
+                    @php
+                        $userAuth = Auth::user();
+                        $isSuperAdmin = $userAuth && in_array($userAuth->role, ['super_admin', 'superadmin']);
+                        $isRahasiaLockedForAdmin = $surat->isRahasia() && $isSuperAdmin;
+                    @endphp
+
+                    @if(!$isRahasiaLockedForAdmin)
+                        <div class="mt-5 flex flex-wrap gap-2.5">
+                            @if($surat->file_draft)
+                                <a href="{{ route('surat.viewDraftFile', $surat->id) }}" target="_blank" class="btn-pop-navy inline-flex items-center gap-2 text-xs font-cartoon py-2 px-4 rounded-xl transition">
+                                    <span>👁️</span> Lihat File Draft (Awal)
+                                </a>
+                            @endif
+                            @if($surat->file_final)
+                                <a href="{{ route('surat.viewFinalFile', $surat->id) }}" target="_blank" class="btn-pop-gold inline-flex items-center gap-2 text-xs font-cartoon py-2 px-4 rounded-xl transition">
+                                    <span>📥</span> Unduh File Final (TTD)
+                                </a>
+                            @endif
+                        </div>
+                    @else
+                        <div class="mt-5 p-3.5 rounded-2xl bg-amber-50 border-2 border-[#003366] text-[#003366] flex items-center gap-2.5 text-xs font-cartoon font-bold shadow-[2px_2px_0px_#003366]">
+                            <span class="text-lg">🔒</span>
+                            <span>Akses Berkas Rahasia Dikunci: Super Admin hanya berhak memantau log tracking, mengelola nomor surat, dan menghapus dokumen jika diperlukan.</span>
+                        </div>
+                    @endif
                 </div>
 
                 @php
@@ -129,13 +174,75 @@
                                     <p class="text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed">{{ $catatanTerakhir }}</p>
                                 </div>
 
-                                @if($surat->lampiran_revisi_terakhir)
+                                @if($surat->lampiran_revisi_terakhir && !$isRahasiaLockedForAdmin)
                                     <div class="mt-3">
                                         <a href="{{ asset('storage/' . $surat->lampiran_revisi_terakhir) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-bold rounded-xl border border-rose-400 transition">
                                             <span>📎</span> Unduh File Koreksi / Lampiran Revisi
                                         </a>
                                     </div>
                                 @endif
+                            </div>
+                        </div>
+                    </div>
+                @elseif($surat->status === \App\Models\SuratKeluar::STATUS_DITOLAK)
+                    <div class="mb-8 p-5 rounded-3xl bg-rose-50 border-2 border-rose-600 shadow-[3px_3px_0px_#be123c]">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-10 h-10 rounded-2xl bg-rose-200 border-2 border-rose-600 flex items-center justify-center text-rose-800 text-xl shrink-0">
+                                ❌
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <h4 class="text-xs font-cartoon font-bold text-rose-900 uppercase tracking-wider">
+                                        Dokumen Surat Telah Ditolak
+                                    </h4>
+                                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-900 border border-rose-400">
+                                        {{ $surat->status_label }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-rose-800 mt-0.5 font-medium">Dokumen ini telah ditolak oleh pemeriksa dan proses alur surat telah dihentikan secara permanen.</p>
+                                
+                                @if($catatanTerakhir)
+                                    <div class="mt-3 p-3.5 bg-white border-2 border-rose-300 rounded-2xl shadow-xs">
+                                        <span class="text-xs font-bold text-rose-800 flex items-center gap-1.5 mb-1.5">
+                                            <span>💬</span> Alasan Penolakan:
+                                        </span>
+                                        <p class="text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed">{{ $catatanTerakhir }}</p>
+                                    </div>
+                                @endif
+
+                                @if($surat->lampiran_revisi_terakhir && !$isRahasiaLockedForAdmin)
+                                    <div class="mt-3">
+                                        <a href="{{ asset('storage/' . $surat->lampiran_revisi_terakhir) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-bold rounded-xl border border-rose-400 transition">
+                                            <span>📎</span> Unduh Berkas Catatan Penolakan
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @elseif($surat->status === \App\Models\SuratKeluar::STATUS_DIBATALKAN)
+                    <div class="mb-8 p-5 rounded-3xl bg-slate-100 border-2 border-slate-400 shadow-[3px_3px_0px_#64748b]">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-10 h-10 rounded-2xl bg-slate-200 border-2 border-slate-400 flex items-center justify-center text-slate-700 text-xl shrink-0">
+                                🚫
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <h4 class="text-xs font-cartoon font-bold text-slate-800 uppercase tracking-wider">
+                                        Proses Dokumen Dibatalkan
+                                    </h4>
+                                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-800 border border-slate-400">
+                                        {{ $surat->status_label }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-0.5 font-medium">Proses surat ini telah dibatalkan atas inisiatif Penyusun (Pembuat Dokumen).</p>
+                                
+                                <div class="mt-3 p-3.5 bg-white border-2 border-slate-300 rounded-2xl shadow-xs">
+                                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-1.5">
+                                        <span>💬</span> Pesan Pembatalan:
+                                    </span>
+                                    <p class="text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed">{{ $catatanTerakhir ?: 'Mohon maaf Bpk/Ibu suratnya saya batalkan prosesnya' }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -167,7 +274,7 @@
                         @forelse($trackings as $track)
                             @php
                                 $aksiLower = strtolower($track->aksi);
-                                $isItemKembali = str_contains($aksiLower, 'kembali') || str_contains($aksiLower, 'tolak') || str_contains($aksiLower, 'balik dulu') || (str_contains($aksiLower, 'revisi') && !str_contains($aksiLower, 'draft direvisi'));
+                                $isItemKembali = str_contains($aksiLower, 'kembali') || str_contains($aksiLower, 'tolak') || str_contains($aksiLower, 'batal') || str_contains($aksiLower, 'balik dulu') || (str_contains($aksiLower, 'revisi') && !str_contains($aksiLower, 'draft direvisi'));
                                 $isCurrent = $loop->last;
                             @endphp
                             <div class="pl-8 relative">
@@ -202,8 +309,26 @@
                                             <h5 class="font-cartoon font-bold text-sm sm:text-base leading-snug {{ $isItemKembali ? 'text-rose-700' : 'text-[#003366]' }}">{{ $surat->formatTrackingAksi($track, $isCurrent) }}</h5>
                                             
                                             @if($isCurrent)
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider {{ $isItemKembali ? 'bg-rose-200 text-rose-900 border border-rose-400' : 'bg-[#F5B800] text-[#002244] border border-[#002244]' }}">
-                                                    <span>📍 POSISI SAAT INI</span>
+                                                @if(str_contains($aksiLower, 'tolak'))
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-200 text-rose-950 border border-rose-500">
+                                                        <span>❌ DOKUMEN DITOLAK</span>
+                                                    </span>
+                                                @elseif(str_contains($aksiLower, 'batal'))
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-900 border border-slate-500">
+                                                        <span>🚫 PROSES DIBATALKAN</span>
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider {{ $isItemKembali ? 'bg-rose-200 text-rose-900 border border-rose-400' : 'bg-[#F5B800] text-[#002244] border border-[#002244]' }}">
+                                                        <span>📍 POSISI SAAT INI</span>
+                                                    </span>
+                                                @endif
+                                            @elseif(str_contains($aksiLower, 'tolak'))
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                                    ❌ DITOLAK
+                                                </span>
+                                            @elseif(str_contains($aksiLower, 'batal'))
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800 border border-slate-400">
+                                                    🚫 DIBATALKAN
                                                 </span>
                                             @elseif($isItemKembali)
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
@@ -225,15 +350,15 @@
                                             <div class="mt-3 p-3.5 rounded-xl bg-rose-100/70 border border-rose-300">
                                                 <div class="flex items-center text-xs font-bold text-rose-800 uppercase tracking-wider mb-1.5">
                                                     <span class="text-sm mr-1.5">💬</span>
-                                                    <span>Catatan Revisi / Alasan:</span>
+                                                    <span>{{ str_contains($aksiLower, 'tolak') ? 'Alasan Penolakan Dokumen:' : (str_contains($aksiLower, 'batal') ? 'Alasan Pembatalan Surat:' : 'Catatan Revisi / Alasan:') }}</span>
                                                 </div>
                                                 <div class="p-2.5 bg-white border border-rose-200 rounded-lg text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-line leading-relaxed">
                                                     {{ $track->catatan }}
                                                 </div>
-                                                @if($track->file_lampiran)
+                                                @if($track->file_lampiran && !$isRahasiaLockedForAdmin)
                                                     <div class="mt-2.5 pt-2 border-t border-rose-200">
                                                         <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-rose-50 text-rose-800 text-xs font-bold rounded-lg border border-rose-300 transition">
-                                                            <span>📎</span> Unduh File Koreksi / Catatan Revisi
+                                                            <span>{{ str_contains($aksiLower, 'tolak') ? '📎 Unduh Berkas Catatan Penolakan' : '📎 Unduh File Koreksi / Catatan Revisi' }}</span>
                                                         </a>
                                                     </div>
                                                 @endif
@@ -243,7 +368,7 @@
                                                 <span class="font-bold text-[#003366]">Catatan:</span>
                                                 <span class="text-slate-800 ml-1 italic">{{ $track->catatan }}</span>
                                             </div>
-                                            @if($track->file_lampiran)
+                                            @if($track->file_lampiran && !$isRahasiaLockedForAdmin)
                                                 <div class="mt-2.5">
                                                     <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-slate-50 text-[#003366] text-xs font-bold rounded-lg border border-slate-300 transition">
                                                         <span>📎</span> Unduh File Lampiran
@@ -251,7 +376,7 @@
                                                 </div>
                                             @endif
                                         @endif
-                                    @elseif($track->file_lampiran)
+                                    @elseif($track->file_lampiran && !$isRahasiaLockedForAdmin)
                                         <div class="mt-2.5">
                                             <a href="{{ asset('storage/' . $track->file_lampiran) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-slate-50 text-rose-800 text-xs font-bold rounded-lg border border-rose-300 transition">
                                                 <span>📎</span> Unduh File Koreksi / Catatan Revisi

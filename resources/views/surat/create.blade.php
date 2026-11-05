@@ -32,8 +32,34 @@
 
             <div class="cartoon-card rounded-3xl p-6 sm:p-8 bg-white text-slate-800"
                  x-data="{
+                     selectedJenisSurat: '{{ old('jenis_surat_id', '') }}',
+                     isRahasia: false,
+                     isSpt: false,
                      pemeriksaAwal: '{{ old('pemeriksa_awal', '') }}',
-                     tujuanPenandatangan: '{{ old('tujuan_penandatangan', 'direktur') }}'
+                     tujuanPpk: '{{ old('tujuan_ppk', '') }}',
+                     tujuanPenandatangan: '{{ old('tujuan_penandatangan', 'direktur') }}',
+                     jenisSuratMap: {
+                         @foreach($jenisSurats as $js)
+                         '{{ $js->id }}': {
+                             kode: '{{ $js->kode }}',
+                             isRahasia: {{ ($js->kode === 'SR' || stripos($js->nama, 'Rahasia') !== false) ? 'true' : 'false' }},
+                             isSpt: {{ ($js->kode === 'SPT' || stripos($js->nama, 'SPT') !== false || stripos($js->nama, 'Perintah Tugas') !== false) ? 'true' : 'false' }}
+                         },
+                         @endforeach
+                     },
+                     init() {
+                         this.checkJenisSurat();
+                     },
+                     checkJenisSurat() {
+                         const info = this.jenisSuratMap[this.selectedJenisSurat];
+                         if (info) {
+                             this.isRahasia = info.isRahasia;
+                             this.isSpt = info.isSpt;
+                         } else {
+                             this.isRahasia = false;
+                             this.isSpt = false;
+                         }
+                     }
                  }">
                 
                 <div class="mb-6 pb-4 border-b-2 border-slate-100">
@@ -65,7 +91,11 @@
                                 <option>-- Tidak ada jenis surat yang aktif --</option>
                             </select>
                         @else
-                            <select name="jenis_surat_id" required class="border-2 border-[#003366] rounded-xl w-full py-2.5 px-3.5 text-slate-900 font-semibold leading-tight focus:outline-none focus:ring-2 focus:ring-[#F5B800]/50 bg-slate-50 text-sm">
+                            <select name="jenis_surat_id" 
+                                    x-model="selectedJenisSurat"
+                                    @change="checkJenisSurat()"
+                                    required 
+                                    class="border-2 border-[#003366] rounded-xl w-full py-2.5 px-3.5 text-slate-900 font-semibold leading-tight focus:outline-none focus:ring-2 focus:ring-[#F5B800]/50 bg-slate-50 text-sm">
                                 <option value="" disabled {{ old('jenis_surat_id') ? '' : 'selected' }} class="text-slate-400">-- Pilih Jenis Surat --</option>
                                 @foreach($jenisSurats as $js)
                                     <option value="{{ $js->id }}" {{ old('jenis_surat_id') == $js->id ? 'selected' : '' }}>
@@ -79,14 +109,89 @@
                         @endif
                     </div>
 
-                    <!-- 1. Pilihan Pemeriksa Pertama (Tujuan Awal) -->
-                    <div class="mb-5">
+                    <!-- Banner Notifikasi Surat Rahasia -->
+                    <div x-show="isRahasia" x-cloak class="p-4 mb-5 rounded-2xl bg-rose-50 border-2 border-rose-600 text-rose-950 shadow-[3px_3px_0px_#E11D48]">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">🔒</span>
+                            <div>
+                                <h4 class="font-cartoon font-bold text-sm text-rose-800">Mode Dokumen Rahasia (Tertutup)</h4>
+                                <p class="text-xs text-rose-900 mt-0.5 font-medium leading-relaxed">
+                                    Surat Rahasia bersifat tertutup dan <strong>tidak memakai hirarki berurutan</strong>. Pada setiap level paraf, pejabat bebas memilih tujuan berikutnya. Berkas dokumen terkunci rapat dan <strong>hanya pihak yang dituju yang dapat membukanya</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banner Notifikasi Surat SPT -->
+                    <div x-show="isSpt && !isRahasia" x-cloak class="p-4 mb-5 rounded-2xl bg-amber-50 border-2 border-[#003366] text-amber-950 shadow-[3px_3px_0px_#003366]">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">💼</span>
+                            <div>
+                                <h4 class="font-cartoon font-bold text-sm text-[#003366]">Alur Khusus SPT (Surat Perintah Tugas)</h4>
+                                <p class="text-xs text-slate-800 mt-0.5 font-medium leading-relaxed">
+                                    Pada surat SPT, Anda dapat memilih pemeriksa pertama (Kaprodi / Ka Unit / Ka Lab / Kasubbag) serta <strong>wajib menentukan Pejabat Pembuat Komitmen (PPK)</strong> tujuan.
+                                </p>
+                                <ul class="text-[11px] text-slate-700 mt-1.5 space-y-0.5 font-semibold list-disc list-inside">
+                                    <li>Jika memilih pemeriksa awal <strong>Kasubbag</strong>: Setelah dari PPK dokumen akan langsung melanjutkan ke Kabag dan seterusnya.</li>
+                                    <li>Jika memilih pemeriksa awal <strong>Kaprodi / Ka Unit / Ka Lab</strong>: Setelah diverifikasi PPK, PPK dapat memilih Kasubbag tujuan.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pilihan PPK Tujuan Khusus Surat SPT -->
+                    <div x-show="isSpt && !isRahasia" x-cloak class="mb-5">
+                        <label class="block text-amber-950 text-xs font-cartoon font-bold uppercase tracking-wider mb-2">
+                            Pilih Pejabat Pembuat Komitmen (PPK) Tujuan <span class="text-red-500">*</span>
+                        </label>
+                        <select name="tujuan_ppk" 
+                                x-model="tujuanPpk"
+                                :required="isSpt && !isRahasia" 
+                                class="border-2 border-amber-600 rounded-xl w-full py-2.5 px-3.5 text-slate-900 font-semibold leading-tight focus:outline-none focus:ring-2 focus:ring-[#F5B800]/50 bg-amber-50/50 text-sm">
+                            <option value="" disabled selected class="text-slate-400">-- Pilih PPK yang Dituju --</option>
+                            @foreach($ppks as $key => $label)
+                                <option value="{{ $key }}" {{ old('tujuan_ppk') == $key ? 'selected' : '' }} class="text-slate-800 font-normal bg-white">
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-amber-900 mt-1.5 flex items-center font-medium">
+                            <span class="font-bold mr-1.5">💼</span> Tentukan PPK 1 (Modal & Vokasi) atau PPK 2 (Pemeliharaan Rutin) yang memproses penugasan surat ini.
+                        </p>
+                    </div>
+
+                    <!-- Opsi A Khusus Surat Rahasia: Pilihan Tujuan Bebas Semua Role -->
+                    <div x-show="isRahasia" x-cloak class="mb-5">
+                        <label class="block text-rose-800 text-xs font-cartoon font-bold uppercase tracking-wider mb-2">
+                            Pilih Pejabat Tujuan Surat Rahasia <span class="text-red-500">*</span>
+                        </label>
+                        <select name="tujuan_rahasia_role" 
+                                :required="isRahasia" 
+                                class="border-2 border-rose-600 rounded-xl w-full py-2.5 px-3.5 text-slate-900 font-semibold leading-tight focus:outline-none focus:ring-2 focus:ring-rose-400 bg-rose-50/40 text-sm">
+                            <option value="" disabled selected class="text-slate-400">-- Pilih Pejabat Penerima Surat Rahasia --</option>
+                            @foreach($allGroupedRoles as $groupName => $roles)
+                                <optgroup label="{{ $groupName }}" class="font-bold text-[#003366] bg-slate-100">
+                                    @foreach($roles as $rKey => $rLabel)
+                                        <option value="{{ $rKey }}" {{ old('tujuan_rahasia_role') == $rKey ? 'selected' : '' }} class="text-slate-800 font-normal bg-white">
+                                            {{ $rLabel }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-rose-700 mt-1.5 flex items-center font-medium">
+                            <span class="font-bold mr-1.5">🔒</span> Pejabat yang dipilih akan menjadi satu-satunya yang menerima dan berhak membuka berkas dokumen rahasia ini.
+                        </p>
+                    </div>
+
+                    <!-- 1. Pilihan Pemeriksa Pertama (Tujuan Awal) - Khusus Dokumen Non-Rahasia -->
+                    <div x-show="!isRahasia" class="mb-5">
                         <label class="block text-[#003366] text-xs font-cartoon font-bold uppercase tracking-wider mb-2">
                             Pemeriksa Pertama (Tujuan Awal) <span class="text-red-500">*</span>
                         </label>
                         <select name="pemeriksa_awal" 
                                 x-model="pemeriksaAwal" 
-                                required 
+                                :required="!isRahasia" 
                                 class="border-2 border-[#003366] rounded-xl w-full py-2.5 px-3.5 text-slate-900 font-semibold leading-tight focus:outline-none focus:ring-2 focus:ring-[#F5B800]/50 bg-slate-50 text-sm">
                             <option value="" disabled selected class="text-slate-400">-- Pilih Tujuan Pemeriksaan Pertama --</option>
                             
@@ -118,19 +223,37 @@
                                 @endforeach
                             </optgroup>
                         </select>
-                        <p class="text-[11px] text-slate-500 mt-1.5 flex items-center font-medium">
-                            <span class="text-[#003366] font-bold mr-1.5">ℹ️</span> Tentukan pejabat pertama yang akan memverifikasi draft surat Anda (tingkat Unit/Prodi/Lab atau Kasubbag).
-                        </p>
+
+                        <!-- Petunjuk Dinamis Alur Pemeriksaan Awal -->
+                        <template x-if="isSpt">
+                            <div class="mt-2 p-2.5 rounded-xl border border-amber-300 bg-amber-50/70 text-[11px] text-amber-950 font-medium leading-relaxed">
+                                <span class="font-bold text-amber-900">📌 Alur Dokumen SPT:</span>
+                                <span x-show="pemeriksaAwal.startsWith('kasubbag_')">
+                                    Kasubbag ➔ PPK ➔ Kepala Bagian (Kabag) ➔ Wadir / Direktur.
+                                </span>
+                                <span x-show="pemeriksaAwal && !pemeriksaAwal.startsWith('kasubbag_')">
+                                    Unit (Kaprodi/Ka Unit/Ka Lab) ➔ PPK ➔ Kasubbag ➔ Kabag ➔ Wadir / Direktur.
+                                </span>
+                                <span x-show="!pemeriksaAwal">
+                                    Pilih Kasubbag atau Unit (Kaprodi/Ka Unit/Ka Lab) sebagai pemverifikasi draf pertama.
+                                </span>
+                            </div>
+                        </template>
+                        <template x-if="!isSpt">
+                            <p class="text-[11px] text-slate-500 mt-1.5 flex items-center font-medium">
+                                <span class="text-[#003366] font-bold mr-1.5">ℹ️</span> Tentukan pejabat pertama yang akan memverifikasi draft surat Anda (tingkat Unit/Prodi/Lab atau Kasubbag).
+                            </p>
+                        </template>
                     </div>
 
-                    <!-- 2. Tujuan Penandatangan Dokumen (Titik Berhenti) DROPDOWN -->
-                    <div class="mb-5">
+                    <!-- 2. Tujuan Penandatangan Dokumen (Titik Berhenti) DROPDOWN - Khusus Dokumen Non-Rahasia -->
+                    <div x-show="!isRahasia" class="mb-5">
                         <label class="block text-[#003366] text-xs font-cartoon font-bold uppercase tracking-wider mb-2">
                             Tujuan Penandatangan Dokumen (Titik Berhenti) <span class="text-red-500">*</span>
                         </label>
                         <select name="tujuan_penandatangan" 
                                 x-model="tujuanPenandatangan" 
-                                required 
+                                :required="!isRahasia" 
                                 class="border-2 border-[#003366] rounded-xl w-full py-2.5 px-3.5 text-slate-900 font-semibold leading-tight focus:outline-none focus:ring-2 focus:ring-[#F5B800]/50 bg-slate-50 text-sm">
                             <option value="direktur">Direktur (Alur Lengkap s.d. Direktur)</option>
                             <option value="wadir">Wakil Direktur (Berhenti di Wakil Direktur Terkait)</option>

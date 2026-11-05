@@ -479,6 +479,32 @@ button.cartoon-card:hover,
     box-shadow: 0px 0px 0px 0px #9F1239 !important;
 }
 
+/* 8B. Tombol Aksi Batal / Pink (Batalkan Surat Oleh Penyusun - Soft Cartoon Neo-Brutalist Pink) */
+.btn-aksi-rose,
+.btn-aksi-batal {
+    background-color: #EC4899 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #9D174D !important;
+    box-shadow: 2.5px 2.5px 0px 0px #9D174D !important;
+    font-weight: 800 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+}
+.btn-aksi-rose:hover,
+.btn-aksi-batal:hover {
+    background-color: #DB2777 !important;
+    color: #FFFFFF !important;
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 3.5px 3.5px 0px 0px #9D174D !important;
+}
+.btn-aksi-rose:active,
+.btn-aksi-batal:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px #9D174D !important;
+    color: #FFFFFF !important;
+}
+
 /* 9. Tombol Aksi Teal (Upload Final, Download Final) */
 .btn-aksi-teal {
     background-color: #0D9488 !important;
@@ -512,5 +538,29 @@ button.cartoon-card:hover,
     border: 2px solid #E11D48 !important;
     box-shadow: 3px 3px 0px 0px #E11D48 !important;
     border-radius: 1rem !important;
+}
+.card-radio-ditolak-active {
+    background-color: #FFF1F2 !important;
+    border: 2px solid #BE123C !important;
+    box-shadow: 3px 3px 0px 0px #BE123C !important;
+    border-radius: 1rem !important;
+}
+.btn-modal-ditolak {
+    background-color: #BE123C !important;
+    color: #FFFFFF !important;
+    border: 2px solid #881337 !important;
+    box-shadow: 3px 3px 0px 0px #881337 !important;
+    font-weight: 800 !important;
+    border-radius: 0.875rem !important;
+    transition: all 0.1s ease !important;
+}
+.btn-modal-ditolak:hover {
+    transform: translate(-1.5px, -1.5px) !important;
+    box-shadow: 4.5px 4.5px 0px 0px #881337 !important;
+    background-color: #9F1239 !important;
+}
+.btn-modal-ditolak:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 1px 1px 0px 0px #881337 !important;
 }
 

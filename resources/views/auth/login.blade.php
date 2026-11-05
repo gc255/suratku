@@ -78,16 +78,8 @@
 <body class="min-h-screen bg-pu-canvas text-slate-800 relative overflow-x-hidden selection:bg-[#003366] selection:text-white"
       x-data="{
           showPass: false,
-          submitting: false,
-          currentTime: '',
-          updateTime() {
-              const now = new Date();
-              const options = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' };
-              const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
-              this.currentTime = now.toLocaleDateString('id-ID', options) + ' • ' + timeStr;
-          }
-      }"
-      x-init="updateTime(); setInterval(() => updateTime(), 30000)">
+          submitting: false
+      }">
 
     <!-- WRAPPER KONTEN UTAMA -->
     <div class="relative z-10 flex flex-col min-h-screen justify-between">
@@ -114,15 +106,6 @@
                             </span>
                         </div>
                         <p class="text-[10px] text-blue-200 font-medium -mt-0.5">Sistem Rekapitulasi & Tracking Surat</p>
-                    </div>
-                </div>
-
-                <!-- Status Jam & Kedipan Hijau Live -->
-                <div class="flex items-center space-x-3">
-                    <div class="flex items-center space-x-2 text-xs font-bold text-white bg-blue-900/70 border-2 border-blue-400/40 shadow-[2px_2px_0px_#002244] px-3.5 py-1.5 rounded-full">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 -ml-4"></span>
-                        <span x-text="currentTime"></span>
                     </div>
                 </div>
             </div>

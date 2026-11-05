@@ -128,6 +128,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Daftar Pejabat Pembuat Komitmen (PPK)
+     */
+    public static function getPpkRoles(): array
+    {
+        return [
+            'ppk_1' => 'PPK 1 (Modal dan Vokasi)',
+            'ppk_2' => 'PPK 2 (Pemeliharaan Rutin)',
+        ];
+    }
+
+    /**
+     * Cek apakah suatu role adalah Pejabat Pembuat Komitmen (PPK)
+     */
+    public static function isPpk(?string $role = null): bool
+    {
+        $role = $role ?? (auth()->check() ? auth()->user()->role : null);
+        return array_key_exists($role, self::getPpkRoles());
+    }
+
+    /**
      * Daftar Kasubbag yang dapat dipilih Penyusun saat upload draft surat
      */
     public static function getKasubbagRoles(): array
@@ -152,7 +172,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Daftar seluruh hak akses / role resmi dalam sistem (39 Hak Akses)
+     * Daftar seluruh hak akses / role resmi dalam sistem
      */
     public static function getRoleLabels(): array
     {
@@ -164,6 +184,7 @@ class User extends Authenticatable
             self::getKaprodiRoles(),
             self::getKetuaUnitRoles(),
             self::getKepalaLabRoles(),
+            self::getPpkRoles(),
             self::getKasubbagRoles(),
             [
                 'sekretaris_kabag' => 'Sekretaris Kepala Administrasi Akademik dan Umum',
@@ -188,6 +209,7 @@ class User extends Authenticatable
             'Program Studi (Kaprodi)' => self::getKaprodiRoles(),
             'Ketua Unit & Komisi' => self::getKetuaUnitRoles(),
             'Kepala Laboratorium' => self::getKepalaLabRoles(),
+            'Pejabat Pembuat Komitmen (PPK)' => self::getPpkRoles(),
             'Kepala Subbagian (Kasubbag)' => self::getKasubbagRoles(),
             'Pimpinan Bagian & Direksi' => [
                 'sekretaris_kabag' => 'Sekretaris Kepala Administrasi Akademik dan Umum',

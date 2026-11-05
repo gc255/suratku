@@ -71,6 +71,18 @@ class UserSeeder extends Seeder
                 'role' => 'sekretaris_direktur',
                 'password' => Hash::make('sekretaris123'),
             ],
+            [
+                'name' => 'PPK 1 (Modal dan Vokasi)',
+                'nip' => 'ppk_1',
+                'role' => 'ppk_1',
+                'password' => Hash::make('ppk1_123'),
+            ],
+            [
+                'name' => 'PPK 2 (Pemeliharaan Rutin)',
+                'nip' => 'ppk_2',
+                'role' => 'ppk_2',
+                'password' => Hash::make('ppk2_123'),
+            ],
         ];
 
         foreach ($users as $u) {
