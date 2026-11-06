@@ -773,6 +773,61 @@
                 @endif
             </div>
 
+            <!-- Banner Ajakan Aktifkan Notifikasi HP (PWA) -->
+            <div x-data="{
+                showBanner: false,
+                loading: false,
+                init() {
+                    const supported = ('Notification' in window) && ('PushManager' in window);
+                    const notDismissed = localStorage.getItem('suratku_push_banner_dismissed') !== 'true';
+                    if (supported && Notification.permission === 'default' && notDismissed) {
+                        this.showBanner = true;
+                    }
+                },
+                async enablePush() {
+                    this.loading = true;
+                    try {
+                        const ok = await window.SuratkuPush.requestPermissionAndSubscribe();
+                        if (ok) {
+                            this.showBanner = false;
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                dismiss() {
+                    this.showBanner = false;
+                    localStorage.setItem('suratku_push_banner_dismissed', 'true');
+                }
+            }" x-show="showBanner" x-transition.opacity.duration.250ms class="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-900 via-[#003366] to-[#002244] border-2 border-[#F5B800] text-white shadow-[4px_4px_0px_#F5B800]">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5">
+                    <div class="flex items-start sm:items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-[#F5B800] text-[#002244] border-2 border-[#002244] flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#002244]">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-sm sm:text-base font-cartoon font-bold text-white tracking-wide">
+                                Aktifkan Notifikasi & Badge Surat di HP Anda 📲
+                            </h2>
+                            <p class="text-xs text-blue-200 mt-0.5">
+                                Dapatkan pemberitahuan seketika di layar HP dan angka antrean di atas ikon aplikasi saat ada dokumen yang membutuhkan tindakan Anda.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <button @click="dismiss()" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold text-blue-200 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                            Nanti Saja
+                        </button>
+                        <button @click="enablePush()" :disabled="loading" type="button" class="btn-pop-gold px-4 py-2 rounded-xl text-xs font-cartoon font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer">
+                            <span x-show="!loading">Izinkan Notifikasi</span>
+                            <span x-show="loading" class="inline-block animate-spin">⏳</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Notifikasi Berhasil -->
             @if (session('success'))
                 <div class="cartoon-card bg-emerald-50 border-2 border-emerald-600 text-emerald-950 p-4 mb-6 rounded-2xl shadow-[3px_3px_0px_#059669] flex items-center gap-2.5">

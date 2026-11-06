@@ -1,4 +1,5 @@
 import './bootstrap';
+import './webpush';
 
 import Alpine from 'alpinejs';
 

@@ -634,6 +634,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/surat/{id}/draft-file', [SuratKeluarController::class, 'viewDraftFile'])->name('surat.viewDraftFile');
     Route::get('/surat/{id}/final-file', [SuratKeluarController::class, 'viewFinalFile'])->name('surat.viewFinalFile');
     Route::get('/surat/{id}/lampiran-revisi', [SuratKeluarController::class, 'viewLampiranRevisi'])->name('surat.viewLampiranRevisi');
+
+    // Rute Notifikasi Web Push (PWA) - hanya untuk akun yang login, dibatasi frekuensinya
+    Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->middleware('throttle:20,1')->name('push.subscribe');
+    Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->middleware('throttle:20,1')->name('push.unsubscribe');
+    Route::get('/push/badge', [\App\Http\Controllers\PushSubscriptionController::class, 'badge'])->middleware('throttle:60,1')->name('push.badge');
 });
 
 require __DIR__.'/auth.php';

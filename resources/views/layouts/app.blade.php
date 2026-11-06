@@ -10,6 +10,16 @@
 
         <title>Suratku (Beta) - Politeknik Pekerjaan Umum</title>
 
+        <!-- Progressive Web App (PWA) & Web Push -->
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+        <meta name="theme-color" content="#003366">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="Suratku">
+        <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
+        <meta name="vapid-public-key" content="{{ config('webpush.public_key') }}">
+
         <!-- Favicon Logo Tab -->
         <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=1">
         <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=1">
