@@ -20,22 +20,29 @@ function urlBase64ToUint8Array(base64String) {
 
 const SuratkuPush = {
   vapidPublicKey: null,
+  swUrl: '/sw.js',
   registration: null,
 
-  async init(vapidPublicKey) {
+  async init(vapidPublicKey, swUrl) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       return false;
     }
 
     this.vapidPublicKey = vapidPublicKey;
+    if (swUrl) {
+      this.swUrl = swUrl;
+    }
 
     try {
-      this.registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      this.registration = await navigator.serviceWorker.register(this.swUrl, { scope: '/' });
 
-      // Jika izin sudah diberikan sebelumnya, sinkronkan langganan & perbarui badge
+      // Jika izin sudah diberikan sebelumnya, langsung aktifkan & sinkronkan
       if (Notification.permission === 'granted') {
-        await this.syncSubscription();
+        await this.subscribe();
         await this.updateBadge();
+      } else if (Notification.permission === 'default') {
+        // Minta izin secara native pada interaksi/ketukan pertama pengguna (tanpa banner/header tambahan)
+        this.bindNativePermissionPrompt();
       }
 
       return true;
@@ -45,36 +52,32 @@ const SuratkuPush = {
     }
   },
 
+  bindNativePermissionPrompt() {
+    const askOnce = async () => {
+      document.removeEventListener('click', askOnce);
+      document.removeEventListener('touchend', askOnce);
+
+      if (Notification.permission !== 'default') return;
+
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          await this.subscribe();
+          await this.updateBadge();
+        }
+      } catch (err) {
+        // Abaikan bila pengguna membatalkan
+      }
+    };
+
+    document.addEventListener('click', askOnce, { once: true });
+    document.addEventListener('touchend', askOnce, { once: true });
+  },
+
   async isSubscribed() {
     if (!this.registration) return false;
     const subscription = await this.registration.pushManager.getSubscription();
     return subscription !== null;
-  },
-
-  async requestPermissionAndSubscribe() {
-    if (!('Notification' in window) || !('PushManager' in window)) {
-      alert('Browser Anda tidak mendukung Web Push Notification.');
-      return false;
-    }
-
-    if (!this.vapidPublicKey) {
-      console.warn('[SuratkuPush] VAPID Public Key belum disetel.');
-      return false;
-    }
-
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        return false;
-      }
-
-      await this.subscribe();
-      await this.updateBadge();
-      return true;
-    } catch (err) {
-      console.error('[SuratkuPush] Gagal meminta izin notifikasi:', err);
-      return false;
-    }
   },
 
   async subscribe() {
@@ -84,7 +87,6 @@ const SuratkuPush = {
       const applicationServerKey = urlBase64ToUint8Array(this.vapidPublicKey);
       let subscription = await this.registration.pushManager.getSubscription();
 
-      // Jika belum ada, daftarkan subscription baru
       if (!subscription) {
         subscription = await this.registration.pushManager.subscribe({
           userVisibleOnly: true,
@@ -92,24 +94,11 @@ const SuratkuPush = {
         });
       }
 
-      // Kirim data subscription ke server Laravel
       await this.sendSubscriptionToServer(subscription);
       return subscription;
     } catch (err) {
-      console.error('[SuratkuPush] Gagal berlangganan push:', err);
+      console.warn('[SuratkuPush] Subscribe error:', err);
       return null;
-    }
-  },
-
-  async syncSubscription() {
-    try {
-      if (!this.registration) return;
-      const subscription = await this.registration.pushManager.getSubscription();
-      if (subscription) {
-        await this.sendSubscriptionToServer(subscription);
-      }
-    } catch (err) {
-      console.warn('[SuratkuPush] Gagal sinkronisasi subscription:', err);
     }
   },
 
@@ -117,25 +106,29 @@ const SuratkuPush = {
     const raw = subscription.toJSON();
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    const res = await fetch('/push/subscribe', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': token || '',
-      },
-      body: JSON.stringify({
-        endpoint: subscription.endpoint,
-        keys: raw.keys,
-        contentEncoding: (PushManager.supportedContentEncodings || ['aes128gcm'])[0],
-      }),
-    });
+    try {
+      const res = await fetch('/push/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': token || '',
+        },
+        body: JSON.stringify({
+          endpoint: subscription.endpoint,
+          keys: raw.keys,
+          contentEncoding: (PushManager.supportedContentEncodings || ['aes128gcm'])[0],
+        }),
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (typeof data.badge_count === 'number') {
-        this.setBadge(data.badge_count);
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.badge_count === 'number') {
+          this.setBadge(data.badge_count);
+        }
       }
+    } catch (e) {
+      console.warn('[SuratkuPush] Failed to send subscription to server:', e);
     }
   },
 
@@ -158,7 +151,7 @@ const SuratkuPush = {
         this.clearBadge();
       }
     } catch (err) {
-      console.warn('[SuratkuPush] Gagal unsubscribe:', err);
+      console.warn('[SuratkuPush] Unsubscribe error:', err);
     }
   },
 
@@ -174,7 +167,7 @@ const SuratkuPush = {
         }
       }
     } catch (e) {
-      // diamkan bila offline
+      // offline
     }
   },
 
@@ -197,11 +190,11 @@ const SuratkuPush = {
 
 window.SuratkuPush = SuratkuPush;
 
-// Otomatis jalankan inisialisasi jika ada meta vapid-public-key
 document.addEventListener('DOMContentLoaded', () => {
   const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
+  const swMeta = document.querySelector('meta[name="service-worker-url"]');
   if (vapidMeta && vapidMeta.content) {
-    SuratkuPush.init(vapidMeta.content);
+    SuratkuPush.init(vapidMeta.content, swMeta ? swMeta.content : '/sw.js');
   }
 });
 

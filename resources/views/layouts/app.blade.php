@@ -19,6 +19,7 @@
         <meta name="apple-mobile-web-app-title" content="Suratku">
         <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
         <meta name="vapid-public-key" content="{{ config('webpush.public_key') }}">
+        <meta name="service-worker-url" content="{{ asset('sw.js') }}">
 
         <!-- Favicon Logo Tab -->
         <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=1">

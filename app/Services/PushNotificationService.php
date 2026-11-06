@@ -153,7 +153,6 @@ class PushNotificationService
 
     /**
      * Dipanggil oleh Observer saat surat dibuat / berpindah tahap.
-     * Pengiriman ditunda hingga respons HTTP selesai dikirim (tidak memperlambat pengguna).
      */
     public static function notifySuratChanged(SuratKeluar $surat, ?int $actorId = null): void
     {
@@ -163,22 +162,13 @@ class PushNotificationService
 
         $suratId = $surat->id;
 
-        $job = function () use ($suratId, $actorId) {
-            try {
-                $fresh = SuratKeluar::with('jenisSurat')->find($suratId);
-                if ($fresh) {
-                    (new self())->dispatchForSurat($fresh, $actorId);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('[WebPush] Gagal memproses notifikasi surat #' . $suratId . ': ' . $e->getMessage());
+        try {
+            $fresh = SuratKeluar::with('jenisSurat')->find($suratId);
+            if ($fresh) {
+                (new self())->dispatchForSurat($fresh, $actorId);
             }
-        };
-
-        if (function_exists('Illuminate\Support\defer') && !app()->runningInConsole()) {
-            // Nama unik per surat: bila surat tersimpan beberapa kali dalam satu request, cukup 1 notifikasi.
-            \Illuminate\Support\defer($job, 'webpush-surat-' . $suratId);
-        } else {
-            $job();
+        } catch (\Throwable $e) {
+            Log::warning('[WebPush] Gagal memproses notifikasi surat #' . $suratId . ': ' . $e->getMessage());
         }
     }
 
@@ -190,65 +180,89 @@ class PushNotificationService
         $judul = \Illuminate\Support\Str::limit((string) $surat->judul, 80);
         $url = route('surat.track', $surat->id, false);
 
-        $users = collect();
-        $title = '';
-        $body = '';
-
-        if (in_array($status, self::PENYUSUN_STATUSES, true)) {
-            // Notifikasi untuk penyusun / pembuat surat
-            if ($surat->pembuat_id) {
-                $users = User::where('id', $surat->pembuat_id)->get();
-            }
-            $label = $rahasia ? 'Surat rahasia Anda' : 'Surat "' . $judul . '"';
-            if ($status === SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN) {
-                $title = 'Surat Dikembalikan untuk Revisi';
-                $body = $label . ' dikembalikan. Silakan cek catatan revisi.';
-            } elseif ($status === SuratKeluar::STATUS_DITOLAK) {
-                $title = 'Surat Ditolak';
-                $body = $label . ' ditolak. Buka aplikasi untuk melihat alasannya.';
-            } else {
-                $title = 'Surat Selesai & Diarsipkan';
-                $body = $label . ' telah selesai diproses dan diarsipkan.';
-            }
-        } elseif (in_array($status, self::PENDING_STATUSES, true)) {
+        // ============================================================
+        // 1. NOTIFIKASI UNTUK PEJABAT / PEMERIKSA DI LEVEL/POSISI SAAT INI
+        // ============================================================
+        if (in_array($status, self::PENDING_STATUSES, true)) {
             $roles = self::resolveRecipientRoles($surat);
-            if (empty($roles)) {
-                return;
+            if (!empty($roles)) {
+                $officers = User::whereIn('role', $roles)
+                    ->whereNotIn('role', ['super_admin', 'superadmin'])
+                    ->when($actorId, fn($q) => $q->where('id', '!=', $actorId))
+                    ->get();
+
+                $isFinal = in_array($status, [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'], true);
+                $isReturn = str_starts_with((string) $status, 'DIKEMBALIKAN_KE_');
+
+                if ($isFinal) {
+                    $title = 'Menunggu Unggah Dokumen Final';
+                    $body = $rahasia
+                        ? 'Surat rahasia telah ditandatangani. Silakan unggah dokumen final.'
+                        : 'Surat "' . $judul . '" telah ditandatangani. Silakan unggah dokumen final.';
+                } elseif ($isReturn) {
+                    $title = 'Surat Dikembalikan ke Meja Anda';
+                    $body = $rahasia
+                        ? 'Ada SURAT RAHASIA dikembalikan ke meja Anda. Buka aplikasi untuk melihat.'
+                        : $jenis . ': ' . $judul . ' dikembalikan ke meja Anda.';
+                } else {
+                    $title = 'Surat Baru Menunggu Paraf Anda';
+                    $body = $rahasia
+                        ? 'Ada SURAT RAHASIA yang menunggu paraf/tindakan Anda.'
+                        : $jenis . ': ' . $judul;
+                }
+
+                foreach ($officers as $officer) {
+                    $this->sendToUser($officer, [
+                        'title' => $title,
+                        'body' => $body,
+                        'url' => $url,
+                        'tag' => 'surat-' . $surat->id,
+                        'badge_count' => self::antreanCountFor($officer),
+                    ]);
+                }
             }
-            $users = User::whereIn('role', $roles)
-                ->whereNotIn('role', ['super_admin', 'superadmin'])
-                ->get();
-
-            $isFinal = in_array($status, [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'], true);
-            $isReturn = str_starts_with((string) $status, 'DIKEMBALIKAN_KE_');
-
-            if ($isFinal) {
-                $title = 'Menunggu Unggah Dokumen Final';
-            } elseif ($isReturn) {
-                $title = 'Surat Dikembalikan ke Meja Anda';
-            } else {
-                $title = 'Surat Baru Menunggu Paraf Anda';
-            }
-
-            $body = $rahasia
-                ? 'Ada SURAT RAHASIA yang menunggu tindakan Anda. Buka aplikasi untuk melihat.'
-                : $jenis . ': ' . $judul;
-        } else {
-            return; // DIBATALKAN, dll. -> tanpa notifikasi
         }
 
-        if ($actorId) {
-            $users = $users->reject(fn ($u) => (int) $u->id === (int) $actorId);
-        }
+        // ============================================================
+        // 2. NOTIFIKASI KHUSUS UNTUK PENYUSUN (PEMBUAT SURAT)
+        // a) Surat sudah ditandatangani (STATUS_MENUNGGU_FINAL / SELESAI_TTD)
+        // b) Surat ditolak (STATUS_DITOLAK)
+        // c) Surat direvisi / dikembalikan ke penyusun (STATUS_DIKEMBALIKAN_KE_PENYUSUN)
+        // d) Surat selesai & diarsipkan (STATUS_DIARSIPKAN)
+        // ============================================================
+        if ($surat->pembuat_id) {
+            $pembuat = User::find($surat->pembuat_id);
+            if ($pembuat && (!$actorId || (int) $pembuat->id !== (int) $actorId)) {
+                $penandatanganLabel = $surat->tujuan_penandatangan_label ?? 'Penandatangan';
+                $label = $rahasia ? 'Surat rahasia Anda' : 'Surat "' . $judul . '"';
 
-        foreach ($users as $user) {
-            $this->sendToUser($user, [
-                'title' => $title,
-                'body' => $body,
-                'url' => $url,
-                'tag' => 'surat-' . $surat->id,
-                'badge_count' => self::antreanCountFor($user),
-            ]);
+                $penyusunTitle = null;
+                $penyusunBody = null;
+
+                if (in_array($status, [SuratKeluar::STATUS_MENUNGGU_FINAL, 'SELESAI_TTD'], true)) {
+                    $penyusunTitle = 'Surat Telah Ditandatangani';
+                    $penyusunBody = $label . ' telah selesai ditandatangani oleh ' . $penandatanganLabel . '.';
+                } elseif ($status === SuratKeluar::STATUS_DIKEMBALIKAN_KE_PENYUSUN) {
+                    $penyusunTitle = 'Surat Dikembalikan untuk Revisi';
+                    $penyusunBody = $label . ' dikembalikan ke meja Anda. Silakan cek catatan revisi.';
+                } elseif ($status === SuratKeluar::STATUS_DITOLAK) {
+                    $penyusunTitle = 'Surat Ditolak';
+                    $penyusunBody = $label . ' ditolak. Buka aplikasi untuk melihat alasannya.';
+                } elseif ($status === SuratKeluar::STATUS_DIARSIPKAN) {
+                    $penyusunTitle = 'Surat Selesai & Diarsipkan';
+                    $penyusunBody = $label . ' telah selesai diproses dan diarsipkan.';
+                }
+
+                if ($penyusunTitle && $penyusunBody) {
+                    $this->sendToUser($pembuat, [
+                        'title' => $penyusunTitle,
+                        'body' => $penyusunBody,
+                        'url' => $url,
+                        'tag' => 'surat-penyusun-' . $surat->id,
+                        'badge_count' => self::antreanCountFor($pembuat),
+                    ]);
+                }
+            }
         }
     }
 

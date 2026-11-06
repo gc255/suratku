@@ -73,69 +73,6 @@
 
             <!-- Right Side: Profile Dropdown -->
             <div class="flex items-center space-x-2.5 sm:space-x-4">
-                <!-- Tombol Notifikasi Web Push (PWA) -->
-                <div x-data="{
-                    supported: ('Notification' in window) && ('serviceWorker' in navigator),
-                    permission: ('Notification' in window) ? Notification.permission : 'denied',
-                    loading: false,
-                    init() {
-                        if (this.supported && Notification.permission === 'granted') {
-                            this.permission = 'granted';
-                        }
-                    },
-                    async toggle() {
-                        if (!this.supported) {
-                            alert('Browser Anda belum mendukung notifikasi Web Push.');
-                            return;
-                        }
-                        this.loading = true;
-                        try {
-                            if (this.permission === 'granted') {
-                                const isSub = await window.SuratkuPush.isSubscribed();
-                                if (isSub) {
-                                    if (confirm('Nonaktifkan notifikasi di perangkat HP/browser ini?')) {
-                                        await window.SuratkuPush.unsubscribe();
-                                        alert('Notifikasi di perangkat ini telah dinonaktifkan.');
-                                    }
-                                } else {
-                                    await window.SuratkuPush.subscribe();
-                                    alert('Notifikasi di perangkat ini telah diaktifkan kembali.');
-                                }
-                            } else if (this.permission === 'denied') {
-                                alert('Izin notifikasi diblokir di browser Anda. Silakan ubah izin situs di setelan browser HP Anda untuk mengizinkan notifikasi.');
-                            } else {
-                                const ok = await window.SuratkuPush.requestPermissionAndSubscribe();
-                                this.permission = Notification.permission;
-                                if (ok) {
-                                    alert('Sukses! Notifikasi surat dan tanda antrean di HP Anda telah aktif.');
-                                }
-                            }
-                        } finally {
-                            this.loading = false;
-                        }
-                    }
-                }" x-show="supported" class="relative">
-                    <button @click="toggle()"
-                            :disabled="loading"
-                            type="button"
-                            :title="permission === 'granted' ? 'Notifikasi HP Aktif (Klik untuk kelola)' : (permission === 'denied' ? 'Izin notifikasi diblokir di browser' : 'Aktifkan Notifikasi di HP')"
-                            class="relative p-2 rounded-xl border-2 transition duration-150 cursor-pointer flex items-center justify-center select-none"
-                            :class="permission === 'granted' ? 'bg-[#002244] border-emerald-400 text-emerald-300 hover:bg-[#001830] shadow-[2px_2px_0px_#10B981]' : (permission === 'denied' ? 'bg-[#002244] border-slate-500 text-slate-400 shadow-[2px_2px_0px_#475569]' : 'bg-[#002244] border-[#F5B800] text-[#F5B800] hover:bg-[#001830] shadow-[2px_2px_0px_#F5B800]')">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        
-                        <!-- Indikator aktif (centang kecil hijau) -->
-                        <span x-show="permission === 'granted'" class="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 border border-[#002244] text-[8px] font-black text-white">✓</span>
-
-                        <!-- Indikator belum aktif (titik kuning berkedip) -->
-                        <span x-show="permission === 'default'" class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 border border-white"></span>
-                        </span>
-                    </button>
-                </div>
-
                 <!-- Settings Dropdown -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">

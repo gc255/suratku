@@ -95,3 +95,4 @@ self.addEventListener('message', (event) => {
     navigator.clearAppBadge().catch(() => {});
   }
 });
+
