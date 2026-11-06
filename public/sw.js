@@ -14,6 +14,16 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Wajib untuk kriteria PWA Chrome & pembuatan paket WebAPK mandiri (tanpa topbar CCT/browser)
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
+});
+
 // 1. Terima sinyal Push Notification dari server Laravel
 self.addEventListener('push', (event) => {
   let data = {};
