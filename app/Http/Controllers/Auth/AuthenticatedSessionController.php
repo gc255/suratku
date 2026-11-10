@@ -28,7 +28,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Setelah login, arahkan ke halaman pengaturan/perubahan password
+        return redirect()->route('profile.edit')->with('info', 'Silakan perbarui kata sandi Anda demi keamanan akun.');
     }
 
     /**

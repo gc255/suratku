@@ -31,19 +31,21 @@
             <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2 text-rose-600 font-bold" />
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-4 pt-2">
             <button type="submit" class="btn-pop-navy inline-flex items-center gap-2 font-bold py-2.5 px-6 rounded-xl text-xs cursor-pointer">
                 <span>🔑</span> {{ __('Perbarui Password') }}
             </button>
 
             @if (session('status') === 'password-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-xs font-bold text-emerald-700 flex items-center gap-1"
-                ><span>✅</span> {{ __('Kata sandi berhasil diperbarui.') }}</p>
+                <div class="p-2.5 rounded-xl bg-emerald-50 border-2 border-emerald-600 text-emerald-950 text-xs font-bold flex items-center gap-3 shadow-[2px_2px_0px_#059669]">
+                    <span class="flex items-center gap-1.5">
+                        <span>✅</span>
+                        <span>{{ __('Kata sandi berhasil diperbarui!') }}</span>
+                    </span>
+                    <a href="{{ route('dashboard') }}" class="btn-pop-gold px-3 py-1 rounded-lg text-[11px] font-bold text-[#002244] inline-flex items-center gap-1">
+                        <span>Lanjut ke Dashboard</span> <span>&rarr;</span>
+                    </a>
+                </div>
             @endif
         </div>
     </form>

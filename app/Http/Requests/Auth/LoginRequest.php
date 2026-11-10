@@ -70,7 +70,7 @@ class LoginRequest extends FormRequest
             \Illuminate\Support\Facades\RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'nip' => 'user atau password yang Anda masukkan tidak sesuai.',
+                'nip' => 'Username atau password yang Anda masukkan tidak sesuai.',
             ]);
         }
 
