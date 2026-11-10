@@ -82,6 +82,68 @@
             transform: translate(2px, 2px) !important;
             box-shadow: 1px 1px 0px 0px #002244 !important;
         }
+
+        /* ======================================================= */
+        /* ANIMASI PENGANTAR SURAT SEPEDA KLASIK                   */
+        /* ======================================================= */
+        .bike-rider-track {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 160px;
+            height: 80px;
+            animation: bike-ride-track 20s linear infinite;
+            will-change: transform;
+        }
+        @keyframes bike-ride-track {
+            0% {
+                transform: translateX(-180px);
+            }
+            100% {
+                transform: translateX(calc(100vw + 60px));
+            }
+        }
+        .bike-wheel-spin {
+            animation: bike-wheel-rotate 0.6s linear infinite;
+        }
+        @keyframes bike-wheel-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .bike-rider-bob {
+            animation: bike-rider-bobbing 0.6s ease-in-out infinite alternate;
+            transform-origin: bottom center;
+        }
+        @keyframes bike-rider-bobbing {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-2px) rotate(-0.7deg); }
+        }
+        .bike-pedal-spin {
+            animation: bike-pedal-rotate 0.6s linear infinite;
+            transform-origin: 68px 62px;
+        }
+        @keyframes bike-pedal-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .bike-letter-flutter {
+            animation: bike-flutter 0.8s ease-in-out infinite alternate;
+            transform-origin: center;
+        }
+        @keyframes bike-flutter {
+            0% { transform: translateY(0) rotate(-3deg); }
+            100% { transform: translateY(-2.5px) rotate(3deg); }
+        }
+        .bike-dust-1 {
+            animation: bike-dust-anim 0.7s ease-out infinite;
+        }
+        .bike-dust-2 {
+            animation: bike-dust-anim 0.7s ease-out 0.35s infinite;
+        }
+        @keyframes bike-dust-anim {
+            0% { opacity: 0.8; transform: translate(0, 0) scale(0.6); }
+            100% { opacity: 0; transform: translate(-16px, -6px) scale(1.4); }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-pu-canvas text-slate-800 relative overflow-x-hidden selection:bg-[#003366] selection:text-white"
@@ -302,6 +364,160 @@
                 </div>
             </div>
         </main>
+
+        <!-- =================================================================== -->
+        <!-- ANIMASI PENGANTAR SURAT SEPEDA KLASIK (JALUR DI ATAS FOOTER)        -->
+        <!-- =================================================================== -->
+        <div class="w-full relative overflow-hidden pointer-events-none select-none z-20" style="height: 82px; margin-bottom: -2px;">
+            <div class="bike-rider-track">
+                <svg viewBox="0 0 160 80" width="160" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- DEBU DI BELAKANG RODA BELAKANG -->
+                    <g transform="translate(18, 68)">
+                        <circle class="bike-dust-1" cx="0" cy="0" r="3" fill="#CBD5E1" opacity="0.7"/>
+                        <circle class="bike-dust-2" cx="-5" cy="-2" r="2.2" fill="#E2E8F0" opacity="0.6"/>
+                    </g>
+
+                    <!-- RODA BELAKANG (X: 30, Y: 62, R: 14) -->
+                    <g class="bike-wheel-spin" style="transform-origin: 30px 62px;">
+                        <!-- Ban Luar -->
+                        <circle cx="30" cy="62" r="14" fill="#002244" stroke="#002244" stroke-width="2"/>
+                        <!-- Velg Putih / Chrome -->
+                        <circle cx="30" cy="62" r="11" fill="#FFFFFF" stroke="#002244" stroke-width="1.5"/>
+                        <!-- Jeruji Sepeda Klasik (6 Spoke) -->
+                        <line x1="30" y1="48" x2="30" y2="76" stroke="#002244" stroke-width="1.2"/>
+                        <line x1="16" y1="62" x2="44" y2="62" stroke="#002244" stroke-width="1.2"/>
+                        <line x1="20" y1="52" x2="40" y2="72" stroke="#002244" stroke-width="1.2"/>
+                        <line x1="20" y1="72" x2="40" y2="52" stroke="#002244" stroke-width="1.2"/>
+                        <!-- Hub Tengah -->
+                        <circle cx="30" cy="62" r="3.5" fill="#F5B800" stroke="#002244" stroke-width="1.2"/>
+                    </g>
+
+                    <!-- RODA DEPAN (X: 110, Y: 62, R: 14) -->
+                    <g class="bike-wheel-spin" style="transform-origin: 110px 62px;">
+                        <!-- Ban Luar -->
+                        <circle cx="110" cy="62" r="14" fill="#002244" stroke="#002244" stroke-width="2"/>
+                        <!-- Velg Putih / Chrome -->
+                        <circle cx="110" cy="62" r="11" fill="#FFFFFF" stroke="#002244" stroke-width="1.5"/>
+                        <!-- Jeruji Sepeda Klasik -->
+                        <line x1="110" y1="48" x2="110" y2="76" stroke="#002244" stroke-width="1.2"/>
+                        <line x1="96" y1="62" x2="124" y2="62" stroke="#002244" stroke-width="1.2"/>
+                        <line x1="100" y1="52" x2="120" y2="72" stroke="#002244" stroke-width="1.2"/>
+                        <line x1="100" y1="72" x2="120" y2="52" stroke="#002244" stroke-width="1.2"/>
+                        <!-- Hub Tengah -->
+                        <circle cx="110" cy="62" r="3.5" fill="#F5B800" stroke="#002244" stroke-width="1.2"/>
+                    </g>
+
+                    <!-- SPAKBOR BELAKANG KLASIK (Melengkung) -->
+                    <path d="M 17 62 A 15 15 0 0 1 45 56" stroke="#003366" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <path d="M 17 62 A 15 15 0 0 1 45 56" stroke="#002244" stroke-width="1" stroke-linecap="round" fill="none"/>
+
+                    <!-- SPAKBOR DEPAN KLASIK -->
+                    <path d="M 98 55 A 15 15 0 0 1 124 64" stroke="#003366" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <path d="M 98 55 A 15 15 0 0 1 124 64" stroke="#002244" stroke-width="1" stroke-linecap="round" fill="none"/>
+
+                    <!-- RANGKA SEPEDA ONTEL KLASIK -->
+                    <!-- Garpu Belakang ke Hub -->
+                    <line x1="30" y1="62" x2="52" y2="44" stroke="#002244" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="30" y1="62" x2="68" y2="62" stroke="#002244" stroke-width="2.5" stroke-linecap="round"/>
+                    
+                    <!-- Pipa Utama & Pipa Bawah -->
+                    <line x1="52" y1="44" x2="68" y2="62" stroke="#002244" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="52" y1="44" x2="98" y2="42" stroke="#002244" stroke-width="2.8" stroke-linecap="round"/>
+                    <line x1="68" y1="62" x2="98" y2="42" stroke="#002244" stroke-width="2.5" stroke-linecap="round"/>
+                    
+                    <!-- Garpu Depan & Leher Stang -->
+                    <line x1="98" y1="42" x2="110" y2="62" stroke="#002244" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="98" y1="42" x2="96" y2="30" stroke="#002244" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- BONCENGAN / BAGASI BELAKANG KLASIK DENGAN TAS SURAT KULIT -->
+                    <line x1="24" y1="46" x2="48" y2="46" stroke="#002244" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="28" y1="46" x2="30" y2="62" stroke="#002244" stroke-width="1.8"/>
+                    <line x1="44" y1="46" x2="30" y2="62" stroke="#002244" stroke-width="1.8"/>
+
+                    <!-- TAS POS KULIT BESAR KLASIK (Cokelat Kulit Neo-Brutalist) -->
+                    <g class="bike-letter-flutter">
+                        <!-- Badan Tas -->
+                        <rect x="22" y="38" width="22" height="15" rx="3" fill="#C26D28" stroke="#002244" stroke-width="2"/>
+                        <!-- Penutup Tas -->
+                        <path d="M 21 38 L 33 46 L 45 38 Z" fill="#9C4F15" stroke="#002244" stroke-width="1.8"/>
+                        <!-- Gesper Tas Emas -->
+                        <rect x="31" y="44.5" width="4" height="3" rx="1" fill="#F5B800" stroke="#002244" stroke-width="1"/>
+                        
+                        <!-- AMPLOP SURAT MUNCUL DARI TAS (Putih dengan cap merah) -->
+                        <g transform="translate(32, 28) rotate(12)">
+                            <rect x="0" y="0" width="13" height="9" rx="1" fill="#FFFFFF" stroke="#002244" stroke-width="1.5"/>
+                            <path d="M 0 0 L 6.5 5 L 13 0" stroke="#002244" stroke-width="1.2" fill="none"/>
+                            <circle cx="9.5" cy="6.5" r="1.5" fill="#EF4444"/>
+                        </g>
+                        <!-- Amplop kedua yang melayang kecil -->
+                        <g transform="translate(18, 25) rotate(-15)">
+                            <rect x="0" y="0" width="10" height="7" rx="1" fill="#FEF08A" stroke="#002244" stroke-width="1.2"/>
+                            <path d="M 0 0 L 5 4 L 10 0" stroke="#002244" stroke-width="1" fill="none"/>
+                        </g>
+                    </g>
+
+                    <!-- JOK ONTEL KLASIK PER -->
+                    <path d="M 46 43 C 46 41, 58 41, 58 43 C 58 45, 52 46, 46 43 Z" fill="#451A03" stroke="#002244" stroke-width="2"/>
+                    <line x1="52" y1="44" x2="52" y2="49" stroke="#002244" stroke-width="2.5"/>
+
+                    <!-- LAMPU KLASIK ONTEL BULAT DI DEPAN (Menyala Kuning Terang) -->
+                    <circle cx="106" cy="36" r="4.5" fill="#F5B800" stroke="#002244" stroke-width="1.8"/>
+                    <path d="M 109 33 L 118 30 L 118 42 L 109 39 Z" fill="#FEF08A" opacity="0.45"/>
+
+                    <!-- STANG SEPEDA ONTEL KLASIK -->
+                    <path d="M 96 30 C 94 25, 90 24, 88 25" stroke="#002244" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                    <!-- Bel Ting-Ting -->
+                    <circle cx="92" cy="24" r="2.5" fill="#F5B800" stroke="#002244" stroke-width="1.2"/>
+
+                    <!-- PEDAL & GEAR TENGAH -->
+                    <circle cx="68" cy="62" r="5.5" fill="#E2E8F0" stroke="#002244" stroke-width="1.8"/>
+                    <g class="bike-pedal-spin">
+                        <line x1="68" y1="62" x2="68" y2="52" stroke="#002244" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="65" y="50" width="6" height="2.5" rx="1" fill="#002244"/>
+                        <line x1="68" y1="62" x2="68" y2="72" stroke="#002244" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="65" y="71" width="6" height="2.5" rx="1" fill="#002244"/>
+                    </g>
+
+                    <!-- KARAKTER KURIR / PENGANTAR SURAT (BOBBING GENTLY) -->
+                    <g class="bike-rider-bob">
+                        <!-- Kaki Belakang / Kanan -->
+                        <path d="M 54 44 L 62 54 L 68 52" stroke="#002244" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+                        <!-- Badan / Jaket PU (Biru PU #003366 dengan Aksen Kuning) -->
+                        <path d="M 53 43 C 55 35, 62 30, 72 32 C 75 36, 76 43, 72 45 Z" fill="#003366" stroke="#002244" stroke-width="2"/>
+                        <!-- Rompi / Kerah Kuning PU -->
+                        <path d="M 64 30 L 68 37 L 72 32 Z" fill="#F5B800" stroke="#002244" stroke-width="1.2"/>
+
+                        <!-- Tali Tas Selempang Surat Dada -->
+                        <path d="M 58 32 Q 68 38 74 44" stroke="#854D0E" stroke-width="2" stroke-dasharray="1 1"/>
+
+                        <!-- Tangan Memegang Stang -->
+                        <path d="M 69 34 L 80 32 L 88 26" stroke="#003366" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <!-- Sarung Tangan / Telapak Tangan Kuning PU -->
+                        <circle cx="88" cy="25" r="2.5" fill="#F5B800" stroke="#002244" stroke-width="1.2"/>
+
+                        <!-- Kaki Depan / Kiri -->
+                        <path d="M 55 44 L 68 53 L 68 62" stroke="#003366" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <path d="M 55 44 L 68 53 L 68 62" stroke="#002244" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <!-- Sepatu Hitam -->
+                        <rect x="66" y="61" width="7" height="3" rx="1.5" fill="#002244"/>
+
+                        <!-- Leher & Kepala -->
+                        <circle cx="73" cy="22" r="7.5" fill="#FED7AA" stroke="#002244" stroke-width="1.8"/>
+                        <!-- Mata Ceria & Senyum -->
+                        <circle cx="76" cy="21" r="1" fill="#002244"/>
+                        <path d="M 75 24 Q 77 26 79 24" stroke="#002244" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+
+                        <!-- TOPI PET / HELM KLASIK PU (#F5B800 Emas PU dengan visor biru) -->
+                        <path d="M 66 21 C 66 14, 78 13, 81 19 Z" fill="#F5B800" stroke="#002244" stroke-width="1.8"/>
+                        <!-- Pin Lambang PU Mini -->
+                        <circle cx="73" cy="17" r="1.5" fill="#003366"/>
+                        <!-- Visor / Pet Topi Menghadap Depan -->
+                        <path d="M 77 19 L 85 19 C 85 19, 83 22, 78 22 Z" fill="#003366" stroke="#002244" stroke-width="1.5"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
 
         <!-- =================================================================== -->
         <!-- FOOTER                                                              -->
