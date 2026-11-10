@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'role',
         'password',
+        'password_changed_at',
     ];
 
     /**
@@ -47,7 +48,31 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_changed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Memeriksa apakah akun masih menggunakan password default dan perlu mengubah passwordnya.
+     */
+    public function needsPasswordChange(): bool
+    {
+        // Jika sudah pernah mengubah password mandiri, tidak perlu ganti lagi
+        if ($this->password_changed_at !== null) {
+            return false;
+        }
+
+        // Cek jika password saat ini masih sama dengan username/NIP (password default akun baru)
+        if (!empty($this->nip) && \Illuminate\Support\Facades\Hash::check($this->nip, $this->password)) {
+            return true;
+        }
+
+        // Cek jika masih menggunakan password default institusi umum
+        if (\Illuminate\Support\Facades\Hash::check('pegawai123', $this->password)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

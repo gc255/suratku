@@ -48,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
+            if (Schema::hasTable('users') && !Schema::hasColumn('users', 'password_changed_at')) {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->timestamp('password_changed_at')->nullable()->after('password');
+                });
+            }
+
             if (!Schema::hasTable('push_subscriptions') && Schema::hasTable('users')) {
                 Schema::create('push_subscriptions', function (Blueprint $table) {
                     $table->id();

@@ -20,10 +20,18 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = $request->user();
+
+        // Validasi agar password baru tidak sama dengan username / password default
+        if (!empty($user->nip) && $validated['password'] === $user->nip) {
+            return back()->withErrors(['password' => 'Kata sandi baru tidak boleh sama dengan username/password default Anda.'], 'updatePassword');
+        }
+
+        $user->update([
             'password' => Hash::make($validated['password']),
+            'password_changed_at' => now(),
         ]);
 
-        return back()->with('status', 'password-updated');
+        return redirect()->route('dashboard')->with('success', 'Kata sandi berhasil diperbarui! Anda dapat melanjutkan aktivitas kerja.');
     }
 }

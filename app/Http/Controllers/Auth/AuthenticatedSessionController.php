@@ -28,8 +28,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Setelah login, arahkan ke halaman pengaturan/perubahan password
-        return redirect()->route('profile.edit')->with('info', 'Silakan perbarui kata sandi Anda demi keamanan akun.');
+        $user = Auth::user();
+
+        // Hanya untuk akun baru yang masih menggunakan password default
+        if ($user && $user->needsPasswordChange()) {
+            return redirect()->route('profile.edit')->with('info', 'Akun Anda masih menggunakan kata sandi default. Demi keamanan sistem, silakan perbarui kata sandi Anda terlebih dahulu.');
+        }
+
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**
