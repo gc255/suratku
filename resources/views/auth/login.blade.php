@@ -174,8 +174,11 @@
 
                             <!-- Session Status -->
                             @if (session('status'))
-                                <div class="mb-5 p-3.5 rounded-2xl bg-emerald-100 border-2 border-emerald-600 text-emerald-950 text-xs font-bold flex items-center gap-2 shadow-[2px_2px_0px_#059669]">
-                                    <span>✅</span>
+                                @php
+                                    $isSessionNotice = str_contains(strtolower(session('status')), 'berakhir') || str_contains(strtolower(session('status')), 'sesi');
+                                @endphp
+                                <div class="mb-5 p-3.5 rounded-2xl {{ $isSessionNotice ? 'bg-amber-50 border-2 border-amber-500 text-amber-950 shadow-[2px_2px_0px_#D97706]' : 'bg-emerald-100 border-2 border-emerald-600 text-emerald-950 shadow-[2px_2px_0px_#059669]' }} text-xs font-bold flex items-center gap-2">
+                                    <span>{{ $isSessionNotice ? '⏱️' : '✅' }}</span>
                                     <span>{{ session('status') }}</span>
                                 </div>
                             @endif
